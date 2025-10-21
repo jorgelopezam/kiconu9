@@ -1,0 +1,104 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is an admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_admin == true;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Allow read if:
+      // - User is admin (can read all users)
+      // - User is reading their own profile
+      allow read: if isAdmin() || isOwner(userId);
+      
+      // Allow create only during initial registration
+      // Ensure new users are created with is_admin = false and user_type = null (will be set after payment)
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == userId &&
+                       request.resource.data.user_id == userId &&
+                       request.resource.data.email == request.auth.token.email &&
+                       request.resource.data.is_admin == false &&
+                       request.resource.data.user_type == null;
+      
+      // Allow update if:
+      // - User is admin (can update any user including is_admin and user_type)
+      // - User is updating their own profile details (but cannot change is_admin)
+      // - User CAN update their own user_type when it's null (payment selection)
+      allow update: if isAdmin() || 
+                       (isOwner(userId) && 
+                        request.resource.data.is_admin == resource.data.is_admin &&
+                        request.resource.data.user_id == resource.data.user_id &&
+                        (resource.data.user_type == null || request.resource.data.user_type == resource.data.user_type));
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // User weights collection
+    match /user_weights/{weightId} {
+      // Allow read if:
+      // - User is admin
+      // - User owns this weight log
+      allow read: if isAdmin() || isOwner(resource.data.user_id);
+      
+      // Allow create if:
+      // - User is creating their own weight log
+      allow create: if isAuthenticated() && 
+                       isOwner(request.resource.data.user_id) &&
+                       request.resource.data.user_id == request.auth.uid;
+      
+      // Allow update if:
+      // - User is admin
+      // - User owns this weight log (cannot change user_id)
+      allow update: if isAdmin() || 
+                       (isOwner(resource.data.user_id) && 
+                        request.resource.data.user_id == resource.data.user_id);
+      
+      // Allow delete if:
+      // - User is admin
+      // - User owns this weight log
+      allow delete: if isAdmin() || isOwner(resource.data.user_id);
+    }
+    
+    // User objectives collection
+    match /user_objectives/{objectiveId} {
+      // Allow read if:
+      // - User is admin
+      // - User owns this objective
+      allow read: if isAdmin() || isOwner(resource.data.user_id);
+      
+      // Allow create if:
+      // - User is creating their own objective
+      allow create: if isAuthenticated() && 
+                       isOwner(request.resource.data.user_id) &&
+                       request.resource.data.user_id == request.auth.uid;
+      
+      // Allow update if:
+      // - User is admin
+      // - User owns this objective (cannot change user_id)
+      allow update: if isAdmin() || 
+                       (isOwner(resource.data.user_id) && 
+                        request.resource.data.user_id == resource.data.user_id);
+      
+      // Allow delete if:
+      // - User is admin
+      // - User owns this objective
+      allow delete: if isAdmin() || isOwner(resource.data.user_id);
+    }
+  }
+}

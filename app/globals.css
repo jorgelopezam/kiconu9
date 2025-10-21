@@ -1,26 +1,89 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdfbf6;
+  --surface: #ffffff;
+  --foreground: #3b4221;
+  --muted-foreground: #91855e;
+  --border-color: rgba(145, 133, 94, 0.3);
+
+  --kiconu-claro: #ccc29c;
+
+  --kiconu-oscuro: #454b1b;
+
+  /* Panel page colors */
+  --panel-primary: #ccc29c;
+  --panel-background-light: #f8f8f6;
+  --panel-background-dark: #1f2111;
+  --panel-text-light: #171711;
+  --panel-text-dark: #f8f8f6;
+  --panel-muted-light: #838764;
+  --panel-muted-dark: #a3a78b;
+  --panel-card-light: #ffffff;
+  --panel-card-dark: #252817;
+  --panel-border-light: #f4f4f0;
+  --panel-border-dark: #2a2d1c;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: #454b1b;
+  --color-primary-400: #b4a982;
+  --color-primary-600: #3b4221;
+  --color-sage: #91855e;
+  --color-grullo: #b4a982;
+  --color-desert-sand: #ccc29c;
+  --color-border: var(--border-color);
+  --font-display: var(--font-lexend);
+  
+  /* Panel colors */
+  --color-panel-primary: var(--panel-primary);
+  --color-panel-bg: var(--panel-background-light);
+  --color-panel-text: var(--panel-text-light);
+  --color-panel-muted: var(--panel-muted-light);
+  --color-panel-card: var(--panel-card-light);
+  --color-panel-border: var(--panel-border-light);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1d1e14;
+    --surface: #262717;
+    --foreground: #f0f0e6;
+    --muted-foreground: #ccc29c;
+    --border-color: rgba(188, 182, 154, 0.3);
+    
+    /* Panel dark mode */
+    --panel-bg: var(--panel-background-dark);
+    --panel-text: var(--panel-text-dark);
+    --panel-muted: var(--panel-muted-dark);
+    --panel-card: var(--panel-card-dark);
+    --panel-border: var(--panel-border-dark);
+  }
+  
+  @theme inline {
+    --color-panel-bg: var(--panel-background-dark);
+    --color-panel-text: var(--panel-text-dark);
+    --color-panel-muted: var(--panel-muted-dark);
+    --color-panel-card: var(--panel-card-dark);
+    --color-panel-border: var(--panel-border-dark);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-lexend, "Lexend", system-ui, sans-serif);
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 48;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }

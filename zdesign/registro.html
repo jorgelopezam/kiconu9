@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kiconu - My Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c9df20",
+                        "background-light": "#f8f8f6",
+                        "background-dark": "#1f2111",
+                        "text-light": "#171711",
+                        "text-dark": "#f8f8f6",
+                        "subtext-light": "#838764",
+                        "subtext-dark": "#a3a784",
+                        "border-light": "#e4e5dc",
+                        "border-dark": "#3f4131"
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-center whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark px-10 py-3">
+<div class="flex w-full max-w-[960px] items-center justify-between">
+<div class="flex items-center gap-4 text-text-light dark:text-text-dark">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Kiconu</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="hidden md:flex items-center gap-9">
+<a class="text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Home</a>
+<a class="text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">My Plan</a>
+<a class="text-primary dark:text-primary text-sm font-medium leading-normal" href="#">Profile</a>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAE3Sw0xM2oppHIjVd51CEeH-8W8PTlP3ZWZ1BBmpDgLDpFqDLWsyY4mDR3xCphyVjb78t_d5h2TNlp405DEzQBiH2NKQysEgFAhyYm6KiiEYtYZtnYSzTfECPFxL9aTTNhf_l4PpQK-PAmkKA0O9y-YAwYk1OjooziYVIJXc3MKv_h--GTj3JdqA87w9Ix2Sh_zJY0U_PGxZo8sOP32u9WDQDqtisKHNM93xllZLZ25pWLkNsiCdcPWX2w1GoSIsbybuZjB7XxWw");'></div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-5 px-4 md:px-10">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1 gap-8">
+<div class="flex p-4 @container">
+<div class="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
+<div class="flex gap-4 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32" data-alt="User avatar image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCXMva79cziIE41NxIYd7CYNU1uoGFLsf-vGkbNJj-XLj4tPx7_wrJLT--sjGLC56zD8j8-g6Pc2QqamtTCSU7p4HwwFoz14ghvYpxWBQ_2d0iEsfhmrO4yR9kE0xpWKxw6iQJgrQFBuLBMfahkf9_yy93I6gK9Rpg_-bosMRGaw59oRTHxg1qT0Jaiy9F1yvkfq647GY7mNjxOJw8IiFG4KRVLcpBI_s2Q0NN1-pBaeJfCKjb4DYooHxWlROBz5mVRlqtWB2APUQ");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-text-light dark:text-text-dark text-[22px] font-bold leading-tight tracking-[-0.015em]">Alex Smith</p>
+<p class="text-subtext-light dark:text-subtext-dark text-base font-normal leading-normal">alex.smith@email.com</p>
+</div>
+</div>
+<div class="flex w-full max-w-[480px] gap-3 @[480px]:w-auto">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-background-light dark:bg-border-dark border border-border-light dark:border-border-dark text-text-light dark:text-text-dark text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto hover:bg-border-light dark:hover:bg-border-dark/50">
+<span class="truncate">Edit Profile</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-text-light text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto hover:bg-primary/90">
+<span class="truncate">Save Changes</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4 grid grid-cols-1 md:grid-cols-[20%_1fr_auto] gap-x-6 items-center">
+<div class="col-span-full md:col-span-3 grid grid-cols-subgrid border-t border-border-light dark:border-border-dark py-5 items-center">
+<p class="text-subtext-light dark:text-subtext-dark text-sm font-normal leading-normal col-span-1">Email</p>
+<p class="text-text-light dark:text-text-dark text-sm font-normal leading-normal col-span-1 md:col-span-2">alex.smith@email.com</p>
+</div>
+<div class="col-span-full md:col-span-3 grid grid-cols-subgrid border-t border-border-light dark:border-border-dark py-5 items-center">
+<p class="text-subtext-light dark:text-subtext-dark text-sm font-normal leading-normal col-span-1">Password</p>
+<p class="text-text-light dark:text-text-dark text-sm font-normal leading-normal col-span-1">••••••••</p>
+<div class="flex justify-end col-span-1">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-transparent text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/10">
+<span class="truncate">Change</span>
+</button>
+</div>
+</div>
+<div class="col-span-full md:col-span-3 grid grid-cols-subgrid border-t border-border-light dark:border-border-dark py-5 items-center">
+<p class="text-subtext-light dark:text-subtext-dark text-sm font-normal leading-normal col-span-1">Age</p>
+<p class="text-text-light dark:text-text-dark text-sm font-normal leading-normal col-span-1 md:col-span-2">34</p>
+</div>
+<div class="col-span-full md:col-span-3 grid grid-cols-subgrid border-t border-border-light dark:border-border-dark py-5 items-center">
+<p class="text-subtext-light dark:text-subtext-dark text-sm font-normal leading-normal col-span-1">Height</p>
+<p class="text-text-light dark:text-text-dark text-sm font-normal leading-normal col-span-1 md:col-span-2">175 cm</p>
+</div>
+<div class="col-span-full md:col-span-3 grid grid-cols-subgrid border-t border-border-light dark:border-border-dark py-5 items-center">
+<p class="text-subtext-light dark:text-subtext-dark text-sm font-normal leading-normal col-span-1">Weight</p>
+<p class="text-text-light dark:text-text-dark text-sm font-normal leading-normal col-span-1 md:col-span-2">70 kg</p>
+</div>
+</div>
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-white dark:bg-background-dark dark:border dark:border-border-dark">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-2 p-6">
+<p class="text-subtext-light dark:text-subtext-dark text-sm font-normal leading-normal">Your Subscription</p>
+<p class="text-text-light dark:text-text-dark text-lg font-bold leading-tight tracking-[-0.015em]">Kiconu Essentials</p>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center justify-center rounded-full bg-primary/20 px-2.5 py-0.5 text-primary">
+<p class="whitespace-nowrap text-sm">Active</p>
+</span>
+</div>
+<div class="flex items-end gap-3 justify-between pt-4">
+<div class="flex flex-col gap-1">
+<p class="text-subtext-light dark:text-subtext-dark text-base font-normal leading-normal">Next billing date: 2023-12-31</p>
+<p class="text-subtext-light dark:text-subtext-dark text-base font-normal leading-normal">$25/month</p>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-text-light text-sm font-medium leading-normal hover:bg-primary/90">
+<span class="truncate">Manage Subscription</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="flex justify-center border-t border-solid border-border-light dark:border-border-dark px-10 py-8">
+<div class="flex w-full max-w-[960px] justify-between items-center text-sm text-subtext-light dark:text-subtext-dark">
+<p>© 2023 Kiconu. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary dark:hover:text-primary" href="#">Privacy Policy</a>
+<a class="hover:text-primary dark:hover:text-primary" href="#">Terms of Service</a>
+<a class="hover:text-primary dark:hover:text-primary" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

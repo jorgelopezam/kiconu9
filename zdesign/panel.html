@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kiconu Coaching Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#c9df20",
+              "background-light": "#f8f8f6",
+              "background-dark": "#1f2111",
+              "text-light": "#171711",
+              "text-dark": "#f8f8f6",
+              "muted-light": "#838764",
+              "muted-dark": "#a3a78b",
+            },
+            fontFamily: {
+              display: ["Lexend", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "1rem",
+              xl: "1.5rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f4f4f0] dark:border-b-[#2a2d1c] px-4 sm:px-10 py-3">
+<div class="flex items-center gap-4 text-text-light dark:text-text-dark">
+<div class="size-6 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-text-light dark:text-text-dark text-xl font-bold leading-tight tracking-[-0.015em]">Kiconu</h2>
+</div>
+<div class="flex flex-1 justify-end gap-4 sm:gap-8 items-center">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 bg-background-light dark:bg-background-dark border border-[#f4f4f0] dark:border-[#2a2d1c] text-text-light dark:text-text-dark gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5 hover:bg-primary/20 dark:hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-text-light dark:text-text-dark">settings</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBy_kPSLvTQFBIFRvusaKPhqZahK-DvgoBYrSuuj9Ff4SWeP7Md_-VWYqO7mqLFmxUDSogaLa7oE17DhdgVeatFXPHDWuS11d39dtZKalzqWluPCR999dQUbC6m7hia9cp1hx8e8S9Wi2KyADpvKksoV2EW1EG4AfGjAey-3kwP2ngSQSzxy59DYrEifNcjLTE-kq-yS8uQKMCte-gg35MFMsdYI2ufQf4zFfLTQ0NuKnGlpOlZ-4170MIf5z2nDu-98Z4wk9p-ww");'></div>
+</div>
+</header>
+<main class="flex-1 px-4 py-8 sm:px-10">
+<h1 class="text-text-light dark:text-text-dark tracking-tight text-3xl sm:text-4xl font-bold leading-tight text-left pb-4">Welcome, Alex</h1>
+<div class="flex flex-col gap-4 p-4 bg-white dark:bg-[#252817] rounded-xl border border-[#f4f4f0] dark:border-[#2a2d1c] mb-8">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-text-light dark:text-text-dark text-base font-medium leading-normal">Your Program Progress</p>
+<p class="text-primary text-lg font-bold leading-normal">45%</p>
+</div>
+<div class="rounded-full bg-[#e4e5dc] dark:bg-[#343822]">
+<div class="h-2.5 rounded-full bg-primary" style="width: 45%"></div>
+</div>
+</div>
+<div class="mb-8">
+<h2 class="text-text-light dark:text-text-dark text-2xl font-bold mb-4">Next Activities</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c]">
+<span class="material-symbols-outlined text-primary text-3xl">groups</span>
+<div>
+<p class="text-text-light dark:text-text-dark font-bold">1-on-1 Session</p>
+<p class="text-muted-light dark:text-muted-dark text-sm">Tomorrow, 3:00 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c]">
+<span class="material-symbols-outlined text-primary text-3xl">self_improvement</span>
+<div>
+<p class="text-text-light dark:text-text-dark font-bold">Meditation</p>
+<p class="text-muted-light dark:text-muted-dark text-sm">Today, 8:00 PM</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mb-8">
+<h2 class="text-text-light dark:text-text-dark text-2xl font-bold mb-4">Journal</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<button class="flex items-center justify-center gap-2 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c] hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+<span class="text-text-light dark:text-text-dark font-medium">Journal</span>
+</button>
+<button class="flex items-center justify-center gap-2 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c] hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary">scale</span>
+<span class="text-text-light dark:text-text-dark font-medium">Log weight/height</span>
+</button>
+<button class="flex items-center justify-center gap-2 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c] hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary">spa</span>
+<span class="text-text-light dark:text-text-dark font-medium">Daily Meditation</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="flex flex-col gap-4 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c] hover:shadow-lg hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg" data-alt="A sprouting seed, symbolizing new beginnings in nutrition" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCgfOaQ7g0I96xmkbGtyG08buzx7ird0-EKBGBylXBqyblFqU_BwtCKa3mDkSAYNFEoaWJtHc1khnfXmDHE7_UmaVoNFi3Uz0NUDjJIDp5fzgLwxKY5l_5QX_8eei1QNDLIbcvUWRYcZv6b9g5ispzzRAyqRY34_yXj7CAHWJCqHPH-GH6GZcHprg0oZ9gIQ98wgJDLpeKXAunts9BeeMiGTUReEni-_F6MHzlAsYvqozUgQm49IQi8Z1zd0Hn2lqfSytoCFABwfQ");'></div>
+<div class="text-center">
+<p class="text-text-light dark:text-text-dark text-lg font-bold leading-normal">Phase 1: Foundational Nutrition</p>
+<p class="text-muted-light dark:text-muted-dark text-sm font-normal leading-normal mt-1">Building a healthy relationship with food from the ground up.</p>
+</div>
+</div>
+<div class="flex flex-col gap-4 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c] hover:shadow-lg hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg" data-alt="A person meditating peacefully by a calm lake" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCrg3jTg70_rOhFdHViWf6kEwo8hDesi9hVlvAMy5_j6sWUXD3SkghbmTfjdRCwWIa20nPFZt1MFDzh0U4_Q7LryNE_nkUcd8ZbNAFtblZfT-qurxhFCW_-0WzTzkxvMRo0jUxBYZZ-C-vqpJSCIs1atsfBj4ffOgY-dhcBUPWg-qdrhTEJJJKPJRX48cIenGdu-5XaTzbj3grxojKWXD8dpgTI-forkGkPLLDNRRWifFqUfvMMcTg7qaZpUblMHA7lnrQsRNGxAg");'></div>
+<div class="text-center">
+<p class="text-text-light dark:text-text-dark text-lg font-bold leading-normal">Phase 2: Mindful Eating &amp; Awareness</p>
+<p class="text-muted-light dark:text-muted-dark text-sm font-normal leading-normal mt-1">Connecting mind and body for intuitive nourishment.</p>
+</div>
+</div>
+<div class="flex flex-col gap-4 p-4 rounded-xl bg-white dark:bg-[#252817] border border-[#f4f4f0] dark:border-[#2a2d1c] hover:shadow-lg hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg" data-alt="A beautiful sunrise over mountains, representing personal growth" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmV1mI9QLaTjZJMUfAt0durOXOyyoxW9CJgHa8bLSRdDbBvt3cfu72JATadatYf6FQAmNMJvwBCg2TF6N-HNFgE9zajFlaZ8SreBOT7KFyLoc-6HHmjp4meFSdK5VgCieFUVQIYTRWMlmjZjzEz2T6DhAYF-j3io6WPxqPpFUS-dnvTCwHDnv4oXOXzn0ceHGePRvpKoV8vOQtqZQnosCqnVp3U5aXDnJg_-3W38mBDOv4tm7p7MDPe03ktSUrNbL6e6HnBzRzsw");'></div>
+<div class="text-center">
+<p class="text-text-light dark:text-text-dark text-lg font-bold leading-normal">Phase 3: Transpersonal Integration</p>
+<p class="text-muted-light dark:text-muted-dark text-sm font-normal leading-normal mt-1">Integrating holistic practices for lifelong well-being.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>
