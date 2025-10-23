@@ -32,12 +32,12 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Las contraseñas no coinciden");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
@@ -55,7 +55,7 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Failed to create account");
+        setError("Error al crear la cuenta");
       }
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Failed to sign in with Google");
+        setError("Error al iniciar sesión con Google");
       }
     } finally {
       setLoading(false);
@@ -96,12 +96,12 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
         <button
           onClick={onClose}
           className="absolute right-4 top-4 rounded-lg p-2 text-2xl text-muted-foreground transition hover:bg-desert-sand/30 hover:text-foreground"
-          aria-label="Close"
+          aria-label="Cerrar"
         >
           <span className="material-symbols-outlined">close</span>
         </button>
 
-        <h2 className="mb-6 text-2xl font-bold text-foreground">Create Account</h2>
+        <h2 className="mb-6 text-2xl font-bold text-foreground">Crear Cuenta</h2>
 
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
@@ -113,14 +113,14 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="register-first-name" className="block text-sm font-medium text-foreground">
-                First Name
+                Nombre
               </label>
               <input
                 id="register-first-name"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="John"
+                placeholder="Juan"
                 className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
                 required
                 disabled={loading}
@@ -129,14 +129,14 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
 
             <div>
               <label htmlFor="register-last-name" className="block text-sm font-medium text-foreground">
-                Last Name
+                Apellido
               </label>
               <input
                 id="register-last-name"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Doe"
+                placeholder="Pérez"
                 className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
                 required
                 disabled={loading}
@@ -153,7 +153,7 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="tu@ejemplo.com"
               className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
               required
               disabled={loading}
@@ -162,7 +162,7 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
 
           <div>
             <label htmlFor="register-password" className="block text-sm font-medium text-foreground">
-              Password
+              Contraseña
             </label>
             <input
               id="register-password"
@@ -178,7 +178,7 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
 
           <div>
             <label htmlFor="register-confirm-password" className="block text-sm font-medium text-foreground">
-              Confirm Password
+              Confirmar Contraseña
             </label>
             <input
               id="register-confirm-password"
@@ -197,13 +197,13 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
             disabled={loading}
             className="w-full rounded-xl bg-primary px-6 py-3 text-base font-semibold text-white transition hover:bg-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Creating account..." : "Create Account"}
+            {loading ? "Creando cuenta..." : "Crear Cuenta"}
           </button>
         </form>
 
         <div className="my-6 flex items-center gap-4">
           <div className="h-px flex-1 bg-sage/30" />
-          <span className="text-sm text-muted-foreground">OR</span>
+          <span className="text-sm text-muted-foreground">O</span>
           <div className="h-px flex-1 bg-sage/30" />
         </div>
 

@@ -40,6 +40,37 @@ export interface UserObjective {
   status: ObjectiveStatus;
 }
 
+export type VideoCategory = "Nutrición" | "Transpersonal";
+export type VideoStatus = "Publicado" | "Borrador";
+
+export interface Video {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail_url: string;
+  phase: 1 | 2 | 3;
+  order: number;
+  date_added: Date;
+  status: VideoStatus;
+  duration: number; // in seconds
+  mux_asset_id: string;
+  mux_playback_id: string;
+  category: VideoCategory;
+  created_by: string; // user_id of admin who uploaded
+}
+
+export interface UserVideoProgress {
+  id: string;
+  user_id: string;
+  video_id: string;
+  watched_seconds: number; // How many seconds the user has watched
+  total_duration: number; // Total video duration in seconds
+  progress_percentage: number; // Calculated: (watched_seconds / total_duration) * 100
+  completed: boolean; // true if progress_percentage >= 90
+  last_watched: Date;
+  completed_date?: Date; // When the video was marked as completed
+}
+
 /**
  * Collection paths
  */
@@ -47,4 +78,6 @@ export const COLLECTIONS = {
   USERS: "users",
   USER_WEIGHTS: "user_weights",
   USER_OBJECTIVES: "user_objectives",
+  VIDEOS: "videos",
+  USER_VIDEO_PROGRESS: "user_video_progress",
 } as const;

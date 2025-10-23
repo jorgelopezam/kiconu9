@@ -8,21 +8,51 @@
   --border-color: rgba(145, 133, 94, 0.3);
 
   --kiconu-claro: #ccc29c;
-
   --kiconu-oscuro: #454b1b;
 
   /* Panel page colors */
   --panel-primary: #ccc29c;
-  --panel-background-light: #f8f8f6;
-  --panel-background-dark: #1f2111;
-  --panel-text-light: #171711;
-  --panel-text-dark: #f8f8f6;
-  --panel-muted-light: #838764;
-  --panel-muted-dark: #a3a78b;
-  --panel-card-light: #ffffff;
-  --panel-card-dark: #252817;
-  --panel-border-light: #f4f4f0;
-  --panel-border-dark: #2a2d1c;
+  --panel-bg: #f8f8f6;
+  --panel-text: #171711;
+  --panel-text-light: #ffffff;
+  --panel-muted: #838764;
+  --panel-card: #ffffff;
+  --panel-border: #f4f4f0;
+}
+
+/* Dark theme override */
+.theme-dark {
+  --background: #1d1e14;
+  --surface: #262717;
+  --foreground: #f0f0e6;
+  --muted-foreground: #ccc29c;
+  --border-color: rgba(188, 182, 154, 0.3);
+  
+  /* Panel dark mode */
+  --panel-bg: #1f2111;
+  --panel-text: #f8f8f6;
+  --panel-text-light: #ffffff;
+  --panel-muted: #a3a78b;
+  --panel-card: #252817;
+  --panel-border: #2a2d1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light) {
+    --background: #1d1e14;
+    --surface: #262717;
+    --foreground: #f0f0e6;
+    --muted-foreground: #ccc29c;
+    --border-color: rgba(188, 182, 154, 0.3);
+    
+    /* Panel dark mode */
+    --panel-bg: #1f2111;
+    --panel-text: #f8f8f6;
+    --panel-text-light: #ffffff;
+    --panel-muted: #a3a78b;
+    --panel-card: #252817;
+    --panel-border: #2a2d1c;
+  }
 }
 
 @theme inline {
@@ -39,38 +69,14 @@
   --color-border: var(--border-color);
   --font-display: var(--font-lexend);
   
-  /* Panel colors */
+  /* Panel colors - using direct var references */
   --color-panel-primary: var(--panel-primary);
-  --color-panel-bg: var(--panel-background-light);
-  --color-panel-text: var(--panel-text-light);
-  --color-panel-muted: var(--panel-muted-light);
-  --color-panel-card: var(--panel-card-light);
-  --color-panel-border: var(--panel-border-light);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1d1e14;
-    --surface: #262717;
-    --foreground: #f0f0e6;
-    --muted-foreground: #ccc29c;
-    --border-color: rgba(188, 182, 154, 0.3);
-    
-    /* Panel dark mode */
-    --panel-bg: var(--panel-background-dark);
-    --panel-text: var(--panel-text-dark);
-    --panel-muted: var(--panel-muted-dark);
-    --panel-card: var(--panel-card-dark);
-    --panel-border: var(--panel-border-dark);
-  }
-  
-  @theme inline {
-    --color-panel-bg: var(--panel-background-dark);
-    --color-panel-text: var(--panel-text-dark);
-    --color-panel-muted: var(--panel-muted-dark);
-    --color-panel-card: var(--panel-card-dark);
-    --color-panel-border: var(--panel-border-dark);
-  }
+  --color-panel-bg: var(--panel-bg);
+  --color-panel-text: var(--panel-text);
+  --color-panel-text-light: var(--panel-text-light);
+  --color-panel-muted: var(--panel-muted);
+  --color-panel-card: var(--panel-card);
+  --color-panel-border: var(--panel-border);
 }
 
 body {
@@ -86,4 +92,65 @@ body {
   align-items: center;
   justify-content: center;
   line-height: 1;
+}
+
+/* Hide scrollbar while keeping functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Custom Mux Player Styles */
+mux-player {
+  --media-control-bar-height: auto;
+  --media-control-background: rgba(0, 0, 0, 0.9);
+  --media-range-track-background: rgba(255, 255, 255, 0.2);
+  --media-range-bar-color: var(--panel-muted);
+  --media-range-track-height: 4px;
+  --media-time-range-buffered-color: rgba(255, 255, 255, 0.3);
+  --media-control-hover-background: rgba(255, 255, 255, 0.1);
+  --media-icon-color: white;
+  --media-text-color: white;
+  --media-accent-color: var(--panel-muted);
+  --media-primary-color: var(--panel-muted);
+  --media-secondary-color: var(--panel-muted);
+  --media-focus-ring-color: var(--panel-muted);
+  --media-menu-background: rgba(0, 0, 0, 0.95);
+  --media-menu-item-hover-background: rgba(131, 135, 100, 0.2);
+}
+
+/* Position controls at the bottom inside video */
+mux-player::part(bottom) {
+  background: rgba(0, 0, 0, 0.9);
+  padding: 8px 16px;
+}
+
+/* Hide buttons we don't want */
+mux-player::part(seek-backward button),
+mux-player::part(seek-forward button),
+mux-player::part(captions button),
+mux-player::part(airplay button),
+mux-player::part(pip button),
+mux-player::part(cast button),
+mux-player::part(center),
+mux-player::part(top),
+mux-player::part(gesture-layer),
+mux-player::part(live button) {
+  display: none !important;
+}
+
+/* Style the progress bar */
+mux-player::part(time-range) {
+  width: 100%;
+  margin: 0 0 8px 0;
+  height: 4px;
+}
+
+/* Style the progress bar thumb on hover */
+mux-player::part(time-range):hover {
+  --media-range-track-height: 6px;
 }

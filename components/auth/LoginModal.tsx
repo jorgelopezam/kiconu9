@@ -38,7 +38,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Failed to sign in");
+        setError("Error al iniciar sesión");
       }
     } finally {
       setLoading(false);
@@ -56,7 +56,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Failed to sign in with Google");
+        setError("Error al iniciar sesión con Google");
       }
     } finally {
       setLoading(false);
@@ -79,12 +79,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <button
           onClick={onClose}
           className="absolute right-4 top-4 rounded-lg p-2 text-2xl text-muted-foreground transition hover:bg-desert-sand/30 hover:text-foreground"
-          aria-label="Close"
+          aria-label="Cerrar"
         >
           <span className="material-symbols-outlined">close</span>
         </button>
 
-        <h2 className="mb-6 text-2xl font-bold text-foreground">Sign In</h2>
+        <h2 className="mb-6 text-2xl font-bold text-foreground">Iniciar Sesión</h2>
 
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
@@ -102,7 +102,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="tu@ejemplo.com"
               className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
               required
               disabled={loading}
@@ -111,7 +111,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-foreground">
-              Password
+              Contraseña
             </label>
             <input
               id="password"
@@ -130,13 +130,13 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             disabled={loading}
             className="w-full rounded-xl bg-primary px-6 py-3 text-base font-semibold text-white transition hover:bg-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
 
         <div className="my-6 flex items-center gap-4">
           <div className="h-px flex-1 bg-sage/30" />
-          <span className="text-sm text-muted-foreground">OR</span>
+          <span className="text-sm text-muted-foreground">O</span>
           <div className="h-px flex-1 bg-sage/30" />
         </div>
 

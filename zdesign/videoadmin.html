@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Administración de Videos - Kiconu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#d3ec13",
+            "background-light": "#f8f8f6",
+            "background-dark": "#202210",
+          },
+          fontFamily: {
+            "display": ["Work Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f4f4f0] dark:border-b-background-dark/20 px-4 sm:px-10 py-3">
+<div class="flex items-center gap-4 text-[#171811] dark:text-white">
+<div class="size-4">
+<svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z"></path>
+</svg>
+</div>
+<h2 class="text-[#171811] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Kiconu</h2>
+</div>
+<div class="flex flex-1 justify-end gap-4 sm:gap-8">
+<a class="text-[#171811] dark:text-white text-sm font-medium leading-normal hidden sm:block" href="#">Fase 1</a>
+<button class="hidden sm:flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-[#171811] text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Subir Video</span>
+</button>
+</div>
+</header>
+<main class="flex-1">
+<div class="flex flex-col">
+<div class="flex flex-wrap justify-between items-center gap-3 p-4">
+<div class="flex min-w-72 flex-col gap-3">
+<p class="text-[#171811] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Administración de Videos</p>
+<p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Gestiona los videos de coaching para el programa Kiconu.</p>
+</div>
+</div>
+<div class="px-4 py-3">
+<div class="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+<a class="px-4 py-2 text-sm font-medium border-b-2 border-primary text-[#171811] dark:text-white" href="#">Fase 1</a>
+<a class="px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" href="#">Fase 2</a>
+<a class="px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" href="#">Fase 3</a>
+</div>
+</div>
+<div class="p-4 flex flex-col sm:flex-row items-center gap-4">
+<div class="relative w-full sm:max-w-xs">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-background-dark focus:border-primary focus:ring-primary text-sm" placeholder="Buscar por título o descripción" type="text"/>
+</div>
+<div class="relative w-full sm:w-auto">
+<select class="appearance-none w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-background-dark focus:border-primary focus:ring-primary text-sm text-gray-500 dark:text-gray-400">
+<option>Categoría</option>
+<option>Nutrición</option>
+<option>Mindfulness</option>
+<option>Coaching</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+</div>
+<div class="relative w-full sm:w-auto">
+<select class="appearance-none w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-background-dark focus:border-primary focus:ring-primary text-sm text-gray-500 dark:text-gray-400">
+<option>Estado</option>
+<option>Publicado</option>
+<option>Borrador</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="px-4 pb-3 @container">
+<div class="flex overflow-hidden rounded-xl border border-[#e4e6db] dark:border-background-dark/20 bg-white dark:bg-background-dark/50">
+<table class="flex-1 text-left">
+<thead>
+<tr class="bg-white dark:bg-transparent">
+<th class="p-4 text-left text-gray-500 dark:text-gray-400 w-12 text-sm font-medium leading-normal"></th>
+<th class="pl-4 pr-2 py-3 text-left text-[#171811] dark:text-white w-16 text-sm font-medium leading-normal"></th>
+<th class="px-2 py-3 text-left text-[#171811] dark:text-white w-[30%] text-sm font-medium leading-normal">Título del Video</th>
+<th class="px-4 py-3 text-left text-[#171811] dark:text-white w-[15%] text-sm font-medium leading-normal">Coach</th>
+<th class="px-4 py-3 text-left text-[#171811] dark:text-white w-[15%] text-sm font-medium leading-normal">Fecha de Subida</th>
+<th class="px-4 py-3 text-left text-[#171811] dark:text-white w-[15%] text-sm font-medium leading-normal">Estado</th>
+<th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400 w-[15%] text-sm font-medium leading-normal">Acciones</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx3IQByEdWERkSKMf0yEVcmUhsDoX-VVrcEE9iRzbxvhg1c9D2ocJpDO3qMPORJmrNYCW-NjwD9pEMet59sI3I8wTAVMH-1Bm_szhI_1xrucw1ogyjMepzx-6CIbnE37KQ50z4rT3ibm8gK8_p4NEudzPhpIxWwE8SxRwtqPeBO1AofTrNYOG7XlikXJ965zdCC4Y1LLFuw0q55dWypSSHrzTUz8U_FKP_U03ofefqV6xMsXa_WC3mGLD-YK1dBbamKn8_h_ojrw"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Introducción a la Nutrición Consciente</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Nutrición</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">15/03/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp-8FVKv_xwXbM3Rau8tn9KmF6CrAfm7iKhAuW0fRoQRmSvcEKLWtaaFMKvkpNSAHuGEzYAFk_BOK7j_Z6ujEeFKIcELSSxjUacbF_3o7TO1pBaoiWVyJz85syfAWZopveltADOGo9h3T587r9C-Nptqcyy65Of86rKQ9wP-ZZV5SNfZ5PMTukpP549p04Mi52CwKrm9FwzaGewkhjEUiC7OCKHlh0tf4j--esVm8qzJ8WO2Y8yT_-aLtPuNeZC9BB8TSPtC9kCQ"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Conectando con tu Cuerpo: Escucha Activa</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Transpersonal</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">18/03/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO-r6wjJT2okXwfV-3adeSd68ozL33VPmjQPHYxAG1f70mx2t869cFq1m-tQFwZY7dZSObT5fM4n7qL4mifaC6f_FQoNYaImFCLdCAulfhDNhZ00z9BZoBpOc2mW6RhEh7sD9m6yXxl9PUL4LauBHGWHWBNisj3QPte0-p3QQ9a39xeSxjdk5930h1jLFTh-jNmQIZHjuQuy0fu4G-2ORBKKuBmnBPUtd-dDqIWvS7AHel6gPUCNKQ7vWCTRFPRb3oRwnFpQ2bJQ"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Mindfulness en la Alimentación Diaria</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Nutrición</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">21/03/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATEB7VOOPowTuUq7FtL53v96V66GnZsE1y28aSQrlm6Ds2l4lqM2Oy81s2LqputZALW44lKChz_saEr3ygfNTXv2cMdV39DMPm7M2f3N7iUpcOoFZckVzFXbEStU3AcnbHhIihCh_T6I7d9uXlrhxG0pzLCDQ0vE3a-1xI8TRmXbs1CDPr5Ef7znVZW9GqIKDJXwoBUBrn898wtV6RqVs_-ocvVvVO8Sh6PgeE9m25mBIANDv2gWHZybLWIPEYRz-Gzxk4aY3V-g"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">El Poder de los Pensamientos en tu Bienestar</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Transpersonal</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">24/03/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6Ro8x9sEuLFOr-mgCQOPbv-pOPLvuwontGmJKMwgva-8PauUjrPLmb-8__3POBFZL1zOLK_2G8YSJ4SG3eozTRz2i49H446RD2j1R2FC1GX7qT6KvQx4ckF9zOsh8DVnrPCqKdP_hdKoyG3rt4r2ynK7GjJ3TFfkIduOaSp-9N9yh21VvTjJF6g24AqaKtA_Unlz4DO2zU7pJNVoL8mg719dVrsCAGM8fbhbGgn241Ya-rKOUOL2gO5uZ3hkWdnmk3cRUWFprIg"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Estableciendo Metas Nutricionales y Personales</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Nutrición</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">27/03/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-gray-200 dark:bg-gray-700 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Borrador</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANbpgwHAQB6cik3Ku3BhWInn-s6c5YjveGa3-SHlaW8PHu01z0qp-Sxqc8rHyHYH77mSiSik1xEGny1fEvIwEsFqxRT-sVSBGwCaFawllA4BbDhTVR8zH08FQ4eXmZdVvTdWtVL0a_b_pEC2fV0a2Qq1FLPLCTvbLFdpVDsaFJDOTYUJM3Id3KeVG9Wv_wB0Qa4TkTGKnsly4Hycyr4mMTfgenzBvO2cvfEY2WliRdnKaAK2Si0Xo381mjgh2hL1suwVHNfBDaoQ"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">La Importancia del Descanso y la Recuperación</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Transpersonal</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">30/03/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvPB68ySHoo2L0RI2lCuvfi1TorEC7u_0rdKLXrmVRu1iDqKwnkbJUN_lqsrjJy6UJPRWiDAJnlddwZ-Xc3cZZHWCU5_DbR-uwusH9B0tthJ6PVjZLHYM4imsZywBXZX-JlckXQJmxJXtMhK3ZmxK0d_NoicaGMk3VLn5nRzak2tXYWmf_-b-Thl6_Vky4nPLVvgN8yPZ3EPNhJzlD0Yl4WkL4K0yuAgninIybDp-nbEMzZlC-z9H9L8P32jgBRJorq92M4p008A"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Gestión Emocional a Través de la Comida</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Nutrición</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">02/04/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4fZJBEpElKpVhTmyAtetextbAgAXA-m-levHBZ-6bhhiZIyIYykDylBhi6lUAM_A8EeLEw81V4iAx5n3z5RLSWMZ5SINpgNNhwO5eNbaVcR4Nyz0E3awpveyUNLAhADDFlw0BUhB4ej0yy380-Nfiawr9lgHgte7oS_aCbaL_TLv2MyyI63odYJrnikkrlIYD1EYeU_CMj5y0gsUCmCcMVm1MStknv1dzmg695x6c4LUgofqg8N7vaSpIZ9Sefd_JMbaJqMxbug"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Descubriendo tus Patrones de Comportamiento</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Transpersonal</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">05/04/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4YPSg9J9EIbP2G8sa3d9AgQ4nmDq4DDdiRriTQ9HArfOSp9vNoNc8AwX5hr2RnggQoUqRcFCw1ZL7fCPYCCuG5DAAmwA8sg891AoOqqkC6EGR62lHf3xIcpkgkCx7LvL8CJp09NKBqTW7EuC6ufZy4B68-qcv8CWaqpOjpchARbyJUv0Ppwr--jmBZGi2TlciX9HZ_kp_szOokCRGrZiwpf30pYMiPrAa0sIeT7syZXTcS7W7pIn5LDLO_Vs1J3rE7mxP_t7oeg"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Creando un Entorno de Apoyo</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Nutrición</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">08/04/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-gray-200 dark:bg-gray-700 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Borrador</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD4fgUhnpoxwst0pOiKk2TbnAg1t7SYEonMoH739-V6HtdQhlPWW1selrQAFF2b9GW41yQ4mbzAOjke23189nq0bivYD8vbL6AS3m4bLGZyfRttzAn5bXlLyE5oFNsSukeBOImRp5TD5ap1n0B8XxLXlYM9BG5hfx0g4sjURpW_OoCu0mN3-uQy-Sk4450USXCczdfAcZS1YQ1-Km5Fl6U0hhnEDxbmQ5Vu_2LJNnU1hWHKj5Im52z5ueH6xJWhk9st0iCEOkYbA"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">La Energía de los Alimentos</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Transpersonal</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">11/04/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNhcMfXWqfdeJNs_z8READKLR5HIYu9xxECelBMXaQm7PlxAFV8JiV-5JFxzm9QLW400S_k37m_dgUDPI-_OsrZj0Qs9dgcg6n8ZajUeMaxJaPu7-5YALLg5uDOfd4dI5kdk7jM-n0b7uT5sp6QG-bzKx_CvKtpUVC75vKrSe7cs-37ZgKbU8Vo-HR3TicH7pdbhlIB5SH7llcJrYFy-d0NbqB-YC4RmrtsLnFqtAchFQvWs5ekGrf0K9u08bLP8MVin1SJONH5Q"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Celebrando tus Logros y Avances</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Nutrición</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">14/04/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#e4e6db] dark:border-t-background-dark/20 group">
+<td class="h-[72px] pl-4 py-2"><span class="material-symbols-outlined text-gray-400 dark:text-gray-500 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span></td>
+<td class="h-[72px] pr-2 py-2"><img alt="Video thumbnail" class="w-12 h-12 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCZhEkW2tIxQneGyHYbQD-cNUZx0G8Wy63_myKvMwQkf-v2IXFWYPE3UyM1r9iwpLOXhFBDwEvsyC8Aozpmc_XhRkojoSDRcQloV8nyPDMkouF1WmfLNybgDXahK43Q_Nz3mN23HTzQcMhi7GykO-m-XmFtOjpIDCTnLQD97qm8qdbd9ojKGopKHnZeX_SAw6Nq5rm6h1eYJxn9shrXNWsW_N37Bju3nd1F_mgr9gasY-ftUJIxKpG3KTlFI_opT0PLV2VZRYgUw"/></td>
+<td class="h-[72px] px-2 py-2 text-[#171811] dark:text-white text-sm font-normal leading-normal">Integrando los Aprendizajes en tu Vida</td>
+<td class="h-[72px] px-4 py-2"><span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Transpersonal</span></td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">17/04/2024</td>
+<td class="h-[72px] px-4 py-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-primary/20 dark:bg-primary/30 text-[#171811] dark:text-white text-sm font-medium leading-normal w-full">
+<span class="truncate">Publicado</span>
+</button>
+</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em]">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-background-dark"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></main>
+<div class="fixed bottom-5 right-5 sm:hidden">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 w-14 bg-primary text-[#171811] text-base font-bold leading-normal tracking-[0.015em]">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

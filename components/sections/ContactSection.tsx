@@ -1,44 +1,52 @@
-import { SectionHeading } from "../common/SectionHeading";
-
 export function ContactSection() {
   return (
-    <section className="py-20" id="contact">
-      <div className="mx-auto max-w-xl rounded-3xl border border-sage/30 bg-surface p-10 shadow-lg">
-        <SectionHeading
-          align="left"
-          title="Get Started Today"
-          description="Enter your details to receive our free guide to mindful eating and schedule your consultation."
-        />
-        <form className="mt-10 flex flex-col gap-4">
-          <label className="text-sm font-medium text-foreground" htmlFor="name">
-            Your Name
-            <input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Jane Doe"
-              className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-              required
-            />
-          </label>
-          <label className="text-sm font-medium text-foreground" htmlFor="email">
-            Your Email
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-              required
-            />
-          </label>
-          <button
-            type="submit"
-            className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-base font-semibold text-white transition hover:bg-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
+    <section id="contacto" className="rounded-[2.5rem] bg-surface px-6 py-24 shadow-xl md:px-16 md:py-28">
+      <div className="mx-auto max-w-3xl text-center">
+        <span className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
+          Contacto
+        </span>
+        <h2 className="mt-4 font-display text-4xl font-bold text-foreground md:text-5xl">
+          ¿Preparad@ para comenzar?
+        </h2>
+        <p className="mt-6 text-base leading-relaxed text-muted-foreground md:text-lg">
+          Tu viaje hacia un nuevo yo comienza con una simple conversación. Contáctanos para resolver tus dudas o reservar tu plaza. Estamos aquí para ti.
+        </p>
+      </div>
+
+      <div className="mt-16 grid gap-8 md:grid-cols-2">
+        <article className="rounded-3xl border border-border bg-background/70 p-8 text-left shadow-md">
+          <h3 className="font-display text-2xl font-bold text-primary">Paula Nityasri Segarra</h3>
+          <p className="mt-1 text-sm font-medium uppercase tracking-[0.3em] text-muted-foreground">
+            Coach Transpersonal
+          </p>
+          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+            “Te guiaré a explorar tu mundo interior para liberar tu máximo potencial.”
+          </p>
+          <a
+            href="mailto:paula@kiconu.com"
+            className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-primary/70"
           >
-            Get My Free Guide
-          </button>
-        </form>
+            <span className="material-symbols-outlined text-lg">email</span>
+            Contactar a Paula
+          </a>
+        </article>
+
+        <article className="rounded-3xl border border-border bg-background/70 p-8 text-left shadow-md">
+          <h3 className="font-display text-2xl font-bold text-primary">Irene M. Buitrago</h3>
+          <p className="mt-1 text-sm font-medium uppercase tracking-[0.3em] text-muted-foreground">
+            Nutricionista
+          </p>
+          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+            “Diseñaré el mapa nutricional que tu cuerpo necesita para regenerarse y brillar.”
+          </p>
+          <a
+            href="mailto:irene@kiconu.com"
+            className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-primary/70"
+          >
+            <span className="material-symbols-outlined text-lg">email</span>
+            Contactar a Irene
+          </a>
+        </article>
       </div>
     </section>
   );

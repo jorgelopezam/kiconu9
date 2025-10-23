@@ -16,8 +16,8 @@ export default function JournalPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-panel-bg">
-        <div className="text-panel-text">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-panel-text">Cargando...</div>
       </div>
     );
   }
@@ -27,10 +27,10 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-panel-bg">
+    <div className="min-h-screen">
       <div className="mx-auto flex max-w-[960px] flex-col px-4 py-8 sm:px-10">
         <h1 className="pb-4 text-left text-3xl font-bold leading-tight tracking-tight text-panel-text sm:text-4xl">
-          Journal
+          Diario
         </h1>
         
         <div className="rounded-xl border border-panel-border bg-panel-card p-8 text-center">
@@ -38,10 +38,10 @@ export default function JournalPage() {
             edit_note
           </span>
           <p className="text-lg text-panel-text">
-            Journal feature coming soon...
+            La función de Diario viene pronto...
           </p>
           <p className="mt-2 text-sm text-panel-muted">
-            This is where you&apos;ll be able to track your daily thoughts and progress.
+            Aquí podrás realizar un seguimiento de tus pensamientos y progreso diarios.
           </p>
         </div>
       </div>

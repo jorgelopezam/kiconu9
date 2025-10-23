@@ -9,7 +9,6 @@ import { BenefitsSection } from "../components/sections/BenefitsSection";
 import { ContactSection } from "../components/sections/ContactSection";
 import { HeroSection } from "../components/sections/HeroSection";
 import { HowItWorksSection } from "../components/sections/HowItWorksSection";
-import { TestimonialsSection } from "../components/sections/TestimonialsSection";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -51,7 +50,7 @@ export default function Home() {
   if (loading || checkingProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">Cargando...</div>
       </div>
     );
   }
@@ -68,7 +67,6 @@ export default function Home() {
       <AboutSection />
       <HowItWorksSection />
       <BenefitsSection />
-      <TestimonialsSection />
       <ContactSection />
     </div>
   );

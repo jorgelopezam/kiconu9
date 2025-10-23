@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kiconu Marketing Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#76c7c0",
+            "background-light": "#ffffff",
+            "background-dark": "#2c3e50",
+            "text-light": "#34495e",
+            "text-dark": "#fdf6e3",
+            "card-light": "#fdf6e3",
+            "card-dark": "#34495e",
+            "border-light": "#e0e0e0",
+            "border-dark": "#4a6278"
+          },
+          fontFamily: {
+            "display": ["Work Sans", "sans-serif"],
+            "body": ["Lora", "serif"],
+          },
+          borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-body text-text-light dark:text-text-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+<main class="flex flex-col gap-8 py-10 px-4 sm:px-6 md:px-10">
+<div class="flex flex-wrap justify-between gap-3 p-4">
+<p class="font-display text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">Centro de Marketing Kiconu</p>
+</div>
+<div class="pb-3">
+<div class="flex border-b border-border-light dark:border-border-dark gap-4 sm:gap-8 overflow-x-auto">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-text-light/70 dark:text-text-dark/70 pb-[13px] pt-4 whitespace-nowrap" href="#">
+<p class="font-display text-sm font-bold leading-normal tracking-[0.015em]">Nuestro Kit de Marca</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-primary text-text-light dark:text-text-dark pb-[13px] pt-4 whitespace-nowrap" href="#">
+<p class="font-display text-sm font-bold leading-normal tracking-[0.015em]">Promociones</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-text-light/70 dark:text-text-dark/70 pb-[13px] pt-4 whitespace-nowrap" href="#">
+<p class="font-display text-sm font-bold leading-normal tracking-[0.015em]">Plantillas de Campañas Online</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-text-light/70 dark:text-text-dark/70 pb-[13px] pt-4 whitespace-nowrap" href="#">
+<p class="font-display text-sm font-bold leading-normal tracking-[0.015em]">Estrategia de Redes Sociales</p>
+</a>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-xl shadow-lg p-6 md:p-8">
+<h2 class="font-display text-2xl font-bold leading-tight tracking-[-0.015em] pb-2">Generar un Cupón Promocional</h2>
+<p class="text-base font-normal leading-relaxed pb-6">Crea un código de cupón único para tus campañas de marketing. Establece un porcentaje de descuento y una fecha de vencimiento para personalizar tu oferta.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="flex flex-col gap-2">
+<label class="font-display text-sm font-medium" for="coupon-code">Código de Cupón</label>
+<input class="w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:ring-primary focus:border-primary" id="coupon-code" name="coupon-code" placeholder="ej. KICONU25" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-display text-sm font-medium" for="discount">Descuento (%)</label>
+<input class="w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:ring-primary focus:border-primary" id="discount" name="discount" placeholder="25" type="number"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-display text-sm font-medium" for="campaign">Campaña</label>
+<input class="w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:ring-primary focus:border-primary" id="campaign" name="campaign" placeholder="ej. Venta de Verano" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-display text-sm font-medium" for="expiration-date">Fecha de Vencimiento</label>
+<input class="w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:ring-primary focus:border-primary" id="expiration-date" name="expiration-date" type="date"/>
+</div>
+</div>
+<div class="mt-8 flex justify-start">
+<button class="flex min-w-[150px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] font-display hover:opacity-90 transition-opacity">
+<span class="truncate">Generar Cupón</span>
+</button>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-xl shadow-lg p-6 md:p-8 mt-8">
+<h3 class="font-display text-xl font-bold leading-tight tracking-[-0.015em] pb-4">Cupones Generados</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="font-display text-sm font-bold border-b-2 border-border-light dark:border-border-dark">
+<tr>
+<th class="py-3 px-4">Código</th>
+<th class="py-3 px-4">Descuento</th>
+<th class="py-3 px-4">Campaña</th>
+<th class="py-3 px-4">Vencimiento</th>
+<th class="py-3 px-4">Canjeados</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-light dark:divide-border-dark">
+<tr class="font-body text-base">
+<td class="py-4 px-4 font-mono">KICONU25OFF</td>
+<td class="py-4 px-4">25%</td>
+<td class="py-4 px-4">Venta de Verano</td>
+<td class="py-4 px-4">2024-08-31</td>
+<td class="py-4 px-4">15</td>
+</tr>
+<tr class="font-body text-base">
+<td class="py-4 px-4 font-mono">BIENVENIDO10</td>
+<td class="py-4 px-4">10%</td>
+<td class="py-4 px-4">Nuevo Cliente</td>
+<td class="py-4 px-4">2024-12-31</td>
+<td class="py-4 px-4">32</td>
+</tr>
+<tr class="font-body text-base">
+<td class="py-4 px-4 font-mono">AMIGO50</td>
+<td class="py-4 px-4">50%</td>
+<td class="py-4 px-4">Programa de Referidos</td>
+<td class="py-4 px-4">2024-09-30</td>
+<td class="py-4 px-4">8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</div>
+</body></html>

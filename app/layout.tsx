@@ -4,6 +4,7 @@ import { Lexend } from "next/font/google";
 import { Footer } from "../components/layout/Footer";
 import { NavBar } from "../components/layout/NavBar";
 import { AuthProvider } from "../contexts/AuthContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -13,9 +14,9 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Kiconu — Unlock Your Potential",
+  title: "Kiconu — Desbloquea Tu Potencial",
   description:
-    "A unique fusion of nutrition and transpersonal coaching to help you achieve holistic well-being.",
+    "Una fusión única de nutrición y coaching transpersonal para ayudarte a lograr el bienestar holístico.",
 };
 
 export default function RootLayout({
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <link
           rel="stylesheet"
@@ -34,15 +35,17 @@ export default function RootLayout({
       <body
         className={`${lexend.variable} bg-background font-display text-foreground antialiased`}
       >
-        <AuthProvider>
-          <div className="flex min-h-screen flex-col">
-            <NavBar />
-            <main className="flex-1 bg-background">
-              <div className="mx-auto w-full max-w-6xl px-6 md:px-10">{children}</div>
-            </main>
-            <Footer />
-          </div>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <div className="flex min-h-screen flex-col">
+              <NavBar />
+              <main className="flex-1 bg-background">
+                <div className="mx-auto w-full max-w-6xl px-6 md:px-10">{children}</div>
+              </main>
+              <Footer />
+            </div>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

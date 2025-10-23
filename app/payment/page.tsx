@@ -25,7 +25,7 @@ function PlanCard({ name, price, userType, features, isPopular, onSelect, isProc
     }`}>
       {isPopular && (
         <p className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-0 rounded-full bg-panel-primary px-4 py-1 text-center text-sm font-medium tracking-[0.015em] text-panel-text-light">
-          Most Popular
+          Más Popular
         </p>
       )}
       
@@ -33,7 +33,7 @@ function PlanCard({ name, price, userType, features, isPopular, onSelect, isProc
         <h2 className="text-2xl font-bold text-panel-text">{name}</h2>
         <p className="flex items-baseline gap-1 text-panel-text">
           <span className="text-5xl font-black tracking-[-0.033em]">${price}</span>
-          <span className="text-base font-bold">/ month (USD)</span>
+          <span className="text-base font-bold">/ mes (USD)</span>
         </p>
       </div>
 
@@ -53,7 +53,7 @@ function PlanCard({ name, price, userType, features, isPopular, onSelect, isProc
           className="flex h-12 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-panel-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-panel-text transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span className="truncate">
-            {isProcessing ? "Processing..." : "Select Plan"}
+            {isProcessing ? "Procesando..." : "Seleccionar Plan"}
           </span>
         </button>
       </div>
@@ -79,22 +79,19 @@ export default function PaymentPage() {
     try {
       setProcessing(true);
 
-      // Update user type in Firestore
-      await updateUserType(user.uid, selectedUserType);
-
-      // Redirect to registration page to fill in details
-      router.push("/register");
+      // Redirect to payment2 page with selected plan
+      router.push(`/payment2?plan=${selectedUserType}`);
     } catch (error) {
       console.error("Error selecting plan:", error);
-      alert("Error selecting plan. Please try again.");
+      alert("Error al seleccionar el plan. Por favor intenta de nuevo.");
       setProcessing(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-panel-bg">
-        <div className="text-panel-text">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-panel-text">Cargando...</div>
       </div>
     );
   }
@@ -104,7 +101,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-panel-bg">
+    <div className="min-h-screen">
       <main className="flex-1 px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 text-center">
@@ -166,7 +163,7 @@ export default function PaymentPage() {
 
           <div className="mt-8 flex items-center justify-center gap-2 text-sm text-panel-muted">
             <span className="material-symbols-outlined">lock</span>
-            <span>Payment processing will be integrated soon. Click to select your plan.</span>
+            <span>El procesamiento de pagos será integrado pronto. Haz clic para seleccionar tu plan.</span>
           </div>
         </div>
       </main>

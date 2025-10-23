@@ -7,206 +7,250 @@ import { NextActivityCard } from "@/components/panel/NextActivityCard";
 import { QuickActionButton } from "@/components/panel/QuickActionButton";
 import { PhaseTab } from "@/components/panel/PhaseTab";
 import { VideoCard } from "@/components/panel/VideoCard";
+import { VideoPlayer } from "@/components/panel/VideoPlayer";
+import { ScheduleSessionModal } from "@/components/panel/ScheduleSessionModal";
+import { db } from "@/lib/firebase";
+import { collection, query, where, orderBy, getDocs, Timestamp, addDoc, updateDoc, doc } from "firebase/firestore";
+import { Video as VideoType, UserVideoProgress, COLLECTIONS } from "@/lib/firestore-schema";
 
-interface Video {
+interface Session {
   id: string;
+  user_id: string;
+  day: Timestamp;
+  time: string;
+  duration: number;
+  status: string;
+  coach: string;
+  stage: string;
   title: string;
-  description: string;
-  duration: string;
-  imageUrl: string;
-  isCompleted: boolean;
-}
-
-interface Phase {
-  id: number;
-  title: string;
-  imageUrl: string;
-  progress: number;
-  videos: Video[];
 }
 
 export default function PanelPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [selectedPhase, setSelectedPhase] = useState(1);
+  const [videos, setVideos] = useState<VideoType[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
+  const [videoProgress, setVideoProgress] = useState<Record<string, UserVideoProgress>>({});
+  const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
-  // Mock phase data with videos
-  const phases: Phase[] = [
-    {
-      id: 1,
-      title: "Fase 1: Reset Integral",
-      imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgfOaQ7g0I96xmkbGtyG08buzx7ird0-EKBGBylXBqyblFqU_BwtCKa3mDkSAYNFEoaWJtHc1khnfXmDHE7_UmaVoNFi3Uz0NUDjJIDp5fzgLwxKY5l_5QX_8eei1QNDLIbcvUWRYcZv6b9g5ispzzRAyqRY34_yXj7CAHWJCqHPH-GH6GZcHprg0oZ9gIQ98wgJDLpeKXAunts9BeeMiGTUReEni-_F6MHzlAsYvqozUgQm49IQi8Z1zd0Hn2lqfSytoCFABwfQ",
-      progress: 21,
-      videos: [
-        {
-          id: "1-1",
-          title: "Introduction to Mindful Eating",
-          description: "Discover the foundational principles of mindful eating.",
-          duration: "10:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCA4BN3XKQAv4z29K1fDub9JZcYfoHG8SZOLX0pN_VEsWM2YkpZ_VHVW0ndLJLw4ktEBxP7zaOyAK6xxj6YCePrfr5OJlOiV1hRmXfkZUuHVNTE8zeHjrz7_jHxJ8QdRINzrtm1N2tqpjfpu3BhDbYroTNbAWZE25bv7B8Mw-SraUQdYa4EHfhcNiaAU8MovL_WeyCr-oHNZe_c4MmB1fMIkwBIDVPnLnhnbgt9lFD6UUuzV5bJ_0M133rxZlg8PDr4yODNu9cWzg",
-          isCompleted: false,
-        },
-        {
-          id: "1-2",
-          title: "Understanding Your Hunger Cues",
-          description: "Learn to listen to your body's natural signals.",
-          duration: "15:30",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgF25H6Tb7K6tXGG8xmpTeSzxYtyPLdiBPILLsKifjisXdxJz0eRb8TEpsJAh5QPtNjGR6dmQmNyRHOBHi3rbLYuDivaZDPAdgrKMLoa9dLyblKHG1hS_QLoupK0LVHv-DWMVh3ZhQV2BWyqp-OheUMXAwzSNgj5JC3Txm9cA3kRzVYbbo41bSNPIgiOy0XikrdF72oFGe43Qmb2GPog8Fs6oMZReAI8VxDp0RWB_mXGUYISxhDEwlunx9U86SDioPlrXmxdJmMA",
-          isCompleted: false,
-        },
-        {
-          id: "1-3",
-          title: "The Gut-Brain Connection",
-          description: "Explore the link between your digestive system and brain.",
-          duration: "12:15",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhdkuWC3qY1QpPY-Cc0shsOEfiuO9xlJYbxlj4vVS1hGsSUWOkEe_QDbKBySG3lxAQX1Qcipl_keLoCsx-2-jRRJo5h6A3yLa4KqWZ4Z2nwHlMNI-j6M_djOixaJ8sCWmTF0FgKez8dG8x1m_A5PRhtdQYZBYRt4xQ1xdmNe2rcT2p6HRreFvmdtomR5cm3eqZVfeL2oa3ZYWS3NYhi_aDX_JWozNn33_OCiHKhSSoui8V-41mLQMm8nmyhxdc0nslhnUqC-w9wg",
-          isCompleted: true,
-        },
-        {
-          id: "1-4",
-          title: "Nourishing Your Body with Whole Foods",
-          description: "Understand the benefits of a whole-foods-based diet.",
-          duration: "20:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCnLdgTvDcBkEL3LbgaoUlBzn8Xpmosl0jx-y8PKFTkhHc18uNxWESgc_ydleHzLDzxJUK7leL2yfXDopoVFNmOTYNcMIEBjEUQ-j-YZfuYMPijDZGEs3_WKvN1lTG1Ue3qBNlUMi3o-HT3Bg_Suu4-Etk3tBw-aPysCD5RPoK-C2fl154w1fPjS_vKcaLGXMBakSz1WxE1KkJzFK3rb-_FKhtHGChxrXUfyfRTEXiHMVcGop2iq_kev5McS2J1N2n3niGeFTR-0A",
-          isCompleted: false,
-        },
-        {
-          id: "1-5",
-          title: "The Power of Hydration",
-          description: "Learn the importance of water and how to stay properly hydrated.",
-          duration: "8:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAZ3Q_eNEkJ7XXGp2LLf10K9_6EVOelQWYJx0iNFmdgWqt9rTqsuyry2qgSvk_vUI5tb8BBHyO6uU1F8qFgjoAB7FK8mKrJ3UpYwb34UQ4Q790hvaarQJzu4vJrH4fkCqLfAqebVgYIDmUgUu2-GZQ4wjWI1wvpaQuPfqesENfv2FsmIOQ1bT2D1xgjEv-tus_-tZqKKInZ99GuJaQY7gmMaZRwBIwjW2jpLOho-OZvZDRwm2elejfIyAIauoGvkpC1ABVLtUWcvw",
-          isCompleted: true,
-        },
-        {
-          id: "1-6",
-          title: "Gratitude and Food",
-          description: "Cultivate a practice of gratitude for the food you eat.",
-          duration: "7:45",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKek1ycTvDvHn67cNo9XYRQ5wR0S-aIAp5a9pRaKu44KMBAiWILF_L3vJjOO8PQqBYVFW2_HGNnBnLXzyeWPam9QcODFl4-VGHHZ4j9amnm1wKmKR7BdEgrLWUFfNbW9cJPiIPZeAmps9EWmcVGryvZlTPU9WcS_nSAIOXaFHOrdqtOnfNglxSelqjOj55AVFuc2mti-3MafzxRhOuqLZWvysQet3tMqTwQE1gFz-GAdXq8-sJkX3rayv1jgh-0KJfVthmPxGEYQ",
-          isCompleted: true,
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "Fase 2: Regenerativa",
-      imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCrg3jTg70_rOhFdHViWf6kEwo8hDesi9hVlvAMy5_j6sWUXD3SkghbmTfjdRCwWIa20nPFZt1MFDzh0U4_Q7LryNE_nkUcd8ZbNAFtblZfT-qurxhFCW_-0WzTzkxvMRo0jUxBYZZ-C-vqpJSCIs1atsfBj4ffOgY-dhcBUPWg-qdrhTEJJJKPJRX48cIenGdu-5XaTzbj3grxojKWXD8dpgTI-forkGkPLLDNRRWifFqUfvMMcTg7qaZpUblMHA7lnrQsRNGxAg",
-      progress: 45,
-      videos: [
-        {
-          id: "2-1",
-          title: "Breath Awareness Practice",
-          description: "Connect with your breath before eating.",
-          duration: "8:30",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCrg3jTg70_rOhFdHViWf6kEwo8hDesi9hVlvAMy5_j6sWUXD3SkghbmTfjdRCwWIa20nPFZt1MFDzh0U4_Q7LryNE_nkUcd8ZbNAFtblZfT-qurxhFCW_-0WzTzkxvMRo0jUxBYZZ-C-vqpJSCIs1atsfBj4ffOgY-dhcBUPWg-qdrhTEJJJKPJRX48cIenGdu-5XaTzbj3grxojKWXD8dpgTI-forkGkPLLDNRRWifFqUfvMMcTg7qaZpUblMHA7lnrQsRNGxAg",
-          isCompleted: true,
-        },
-        {
-          id: "2-2",
-          title: "The Five Senses Exercise",
-          description: "Engage all your senses while eating.",
-          duration: "14:20",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBLgPMGiVBBBIkifpNKSpBZA6PxmW1n1yBprf7ThpOqSOi5C3yXkhcrKl3Mq8kOyxZPNpRYe0SoxVu9MIU5vic_uzCkbg9o54lELyBPWCIDxnpFi_-41sRO_CvfEg8tnewY6-MkGRekQ6U1kMQJMdhRw2aUGQF5xCEZDvg7gGlrLDflzorxJxmVqMHjoM4qe4-0A5ABCxJzTdVOkGbOS_LxBUOakve8hom9n_KxkzWJJi1isrV1Cj4tmrH305MCqDh9WcDTacQIhQ",
-          isCompleted: true,
-        },
-        {
-          id: "2-3",
-          title: "Slow Eating Meditation",
-          description: "Learn to eat slowly and mindfully.",
-          duration: "16:45",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCA4BN3XKQAv4z29K1fDub9JZcYfoHG8SZOLX0pN_VEsWM2YkpZ_VHVW0ndLJLw4ktEBxP7zaOyAK6xxj6YCePrfr5OJlOiV1hRmXfkZUuHVNTE8zeHjrz7_jHxJ8QdRINzrtm1N2tqpjfpu3BhDbYroTNbAWZE25bv7B8Mw-SraUQdYa4EHfhcNiaAU8MovL_WeyCr-oHNZe_c4MmB1fMIkwBIDVPnLnhnbgt9lFD6UUuzV5bJ_0M133rxZlg8PDr4yODNu9cWzg",
-          isCompleted: true,
-        },
-        {
-          id: "2-4",
-          title: "Body Scan for Hunger",
-          description: "Tune into physical sensations of hunger.",
-          duration: "11:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgF25H6Tb7K6tXGG8xmpTeSzxYtyPLdiBPILLsKifjisXdxJz0eRb8TEpsJAh5QPtNjGR6dmQmNyRHOBHi3rbLYuDivaZDPAdgrKMLoa9dLyblKHG1hS_QLoupK0LVHv-DWMVh3ZhQV2BWyqp-OheUMXAwzSNgj5JC3Txm9cA3kRzVYbbo41bSNPIgiOy0XikrdF72oFGe43Qmb2GPog8Fs6oMZReAI8VxDp0RWB_mXGUYISxhDEwlunx9U86SDioPlrXmxdJmMA",
-          isCompleted: true,
-        },
-        {
-          id: "2-5",
-          title: "Mindful Portion Control",
-          description: "Understanding appropriate serving sizes.",
-          duration: "13:15",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCnLdgTvDcBkEL3LbgaoUlBzn8Xpmosl0jx-y8PKFTkhHc18uNxWESgc_ydleHzLDzxJUK7leL2yfXDopoVFNmOTYNcMIEBjEUQ-j-YZfuYMPijDZGEs3_WKvN1lTG1Ue3qBNlUMi3o-HT3Bg_Suu4-Etk3tBw-aPysCD5RPoK-C2fl154w1fPjS_vKcaLGXMBakSz1WxE1KkJzFK3rb-_FKhtHGChxrXUfyfRTEXiHMVcGop2iq_kev5McS2J1N2n3niGeFTR-0A",
-          isCompleted: false,
-        },
-        {
-          id: "2-6",
-          title: "Emotional Awareness Journal",
-          description: "Track emotions and eating patterns.",
-          duration: "10:30",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBHarDyHGW036pUkQ-YM6oWhLGtT3WTPi1TdVBfJlguYehGRZH7V29TiidS2yVeogoa-lS1mVIcevsU3iPG9rfArTEQR2toPCnsAb75wZ2fW6tGk6E81GOE0h4f4xFKiBxEMv97bjvG6wWNlxxoJn5bXuRTTs7u9gxZiQX6KpEtV9OKg3CeAFQIKyxAMqxLtLv5ykTb5vgL3YeUDeAq4mL6KgT4Pe7SNHVGxc35htm8qNJVP8FB2jd-quCciHlbhGZrOk1DN8X8aQ",
-          isCompleted: false,
-        },
-      ],
-    },
-    {
-      id: 3,
-      title: "Fase 3: Mi Nuevo Sentir",
-      imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmV1mI9QLaTjZJMUfAt0durOXOyyoxW9CJgHa8bLSRdDbBvt3cfu72JATadatYf6FQAmNMJvwBCg2TF6N-HNFgE9zajFlaZ8SreBOT7KFyLoc-6HHmjp4meFSdK5VgCieFUVQIYTRWMlmjZjzEz2T6DhAYF-j3io6WPxqPpFUS-dnvTCwHDnv4oXOXzn0ceHGePRvpKoV8vOQtqZQnosCqnVp3U5aXDnJg_-3W38mBDOv4tm7p7MDPe03ktSUrNbL6e6HnBzRzsw",
-      progress: 10,
-      videos: [
-        {
-          id: "3-1",
-          title: "Sacred Eating Rituals",
-          description: "Create meaningful rituals around meals.",
-          duration: "18:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmV1mI9QLaTjZJMUfAt0durOXOyyoxW9CJgHa8bLSRdDbBvt3cfu72JATadatYf6FQAmNMJvwBCg2TF6N-HNFgE9zajFlaZ8SreBOT7KFyLoc-6HHmjp4meFSdK5VgCieFUVQIYTRWMlmjZjzEz2T6DhAYF-j3io6WPxqPpFUS-dnvTCwHDnv4oXOXzn0ceHGePRvpKoV8vOQtqZQnosCqnVp3U5aXDnJg_-3W38mBDOv4tm7p7MDPe03ktSUrNbL6e6HnBzRzsw",
-          isCompleted: true,
-        },
-        {
-          id: "3-2",
-          title: "Connection to Food Sources",
-          description: "Understanding where your food comes from.",
-          duration: "22:30",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCA4BN3XKQAv4z29K1fDub9JZcYfoHG8SZOLX0pN_VEsWM2YkpZ_VHVW0ndLJLw4ktEBxP7zaOyAK6xxj6YCePrfr5OJlOiV1hRmXfkZUuHVNTE8zeHjrz7_jHxJ8QdRINzrtm1N2tqpjfpu3BhDbYroTNbAWZE25bv7B8Mw-SraUQdYa4EHfhcNiaAU8MovL_WeyCr-oHNZe_c4MmB1fMIkwBIDVPnLnhnbgt9lFD6UUuzV5bJ_0M133rxZlg8PDr4yODNu9cWzg",
-          isCompleted: false,
-        },
-        {
-          id: "3-3",
-          title: "Holistic Wellness Practices",
-          description: "Integrating nutrition with overall wellness.",
-          duration: "19:45",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDajb8T3oK67J9i8GNwM_t2pF-ZyHIaHhkfvjj0560UTbMzyzMThr8WiwVpWjKHn3cIBmKQNxGY-6dJAmXDPZYowe9uVOhLbKc18NRH7R2EMnodxRGLxXbvxB_2et92ihtR7A8VfxeepUZgOvDu-eiAzMOQsGGIvB_IdvtM9coxv4KxQ85hdlso__QVD6LzZF-FT2fi0HRvMfaL2JF97-04JQ9Kz6JH4kUio1q2Bjt3_7_xCr_GtNXaSj1-73f9R5fKnpVOFYuB3g",
-          isCompleted: false,
-        },
-        {
-          id: "3-4",
-          title: "Community and Food",
-          description: "The role of community in nourishment.",
-          duration: "15:20",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBXnkA8o1gcqnXEfvf_zuIYUrQZhKQb35ErTnTWjs5hUESZrFiExA9_A-ZCGpVj5oWLGgCiAnBIy4JkgPTbEIjmwOfk4nwkGzD8sk9M6JGBsiA5e8WwzUuwooCHnkqW0SrpWTI1KQDURXsU8ztU0me7JtmSHkKbCmk9VmXWMaVnh6knlKORDUE2k1OPkkCmg6lYWIj5iuB-xgtDEcFIpXRwyIYQ0iMjobl65WfaUn3LMzEh3VX2YvMU4Xuhcu_9NyK5S-6KaAbkXA",
-          isCompleted: false,
-        },
-        {
-          id: "3-5",
-          title: "Sustainable Living",
-          description: "Making sustainable food choices.",
-          duration: "21:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCnLdgTvDcBkEL3LbgaoUlBzn8Xpmosl0jx-y8PKFTkhHc18uNxWESgc_ydleHzLDzxJUK7leL2yfXDopoVFNmOTYNcMIEBjEUQ-j-YZfuYMPijDZGEs3_WKvN1lTG1Ue3qBNlUMi3o-HT3Bg_Suu4-Etk3tBw-aPysCD5RPoK-C2fl154w1fPjS_vKcaLGXMBakSz1WxE1KkJzFK3rb-_FKhtHGChxrXUfyfRTEXiHMVcGop2iq_kev5McS2J1N2n3niGeFTR-0A",
-          isCompleted: false,
-        },
-        {
-          id: "3-6",
-          title: "Your Personal Food Philosophy",
-          description: "Developing your unique approach to nourishment.",
-          duration: "25:00",
-          imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKek1ycTvDvHn67cNo9XYRQ5wR0S-aIAp5a9pRaKu44KMBAiWILF_L3vJjOO8PQqBYVFW2_HGNnBnLXzyeWPam9QcODFl4-VGHHZ4j9amnm1wKmKR7BdEgrLWUFfNbW9cJPiIPZeAmps9EWmcVGryvZlTPU9WcS_nSAIOXaFHOrdqtOnfNglxSelqjOj55AVFuc2mti-3MafzxRhOuqLZWvysQet3tMqTwQE1gFz-GAdXq8-sJkX3rayv1jgh-0KJfVthmPxGEYQ",
-          isCompleted: false,
-        },
-      ],
-    },
-  ];
+  // Fetch videos from Firestore
+  const fetchVideos = async () => {
+    console.log("🎬 Starting to fetch videos...");
+    setLoadingVideos(true);
+    try {
+      const videosRef = collection(db, COLLECTIONS.VIDEOS);
+      console.log("📁 Collection reference:", COLLECTIONS.VIDEOS);
+      
+      const q = query(
+        videosRef,
+        where("status", "==", "Publicado")
+      );
 
-  const currentPhase = phases.find((p) => p.id === selectedPhase) || phases[0];
+      console.log("🔍 Executing query...");
+      const snapshot = await getDocs(q);
+      console.log("📊 Query results:", snapshot.size, "documents");
+      
+      const loadedVideos: VideoType[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date_added: doc.data().date_added?.toDate() || new Date(),
+      } as VideoType));
 
-  const handleVideoClick = (videoId: string) => {
-    // TODO: Open video player modal
-    console.log("Reproducir Video:", videoId);
+      console.log("📹 Loaded videos:", loadedVideos);
+
+      // Sort client-side by phase and order
+      loadedVideos.sort((a, b) => {
+        if (a.phase !== b.phase) return a.phase - b.phase;
+        return a.order - b.order;
+      });
+
+      console.log("✅ Setting videos state with", loadedVideos.length, "videos");
+      setVideos(loadedVideos);
+    } catch (error) {
+      console.error("❌ Error fetching videos:", error);
+      setVideos([]);
+    } finally {
+      setLoadingVideos(false);
+      console.log("🏁 Finished fetching videos");
+    }
+  };
+
+  // Fetch user video progress
+  const fetchVideoProgress = async () => {
+    if (!user) return;
+
+    try {
+      const progressRef = collection(db, COLLECTIONS.USER_VIDEO_PROGRESS);
+      const q = query(progressRef, where("user_id", "==", user.uid));
+
+      const snapshot = await getDocs(q);
+      const progress: Record<string, UserVideoProgress> = {};
+      snapshot.forEach(doc => {
+        const data = doc.data() as UserVideoProgress;
+        progress[data.video_id] = {
+          ...data,
+          id: doc.id,
+          last_watched: data.last_watched,
+        };
+      });
+
+      setVideoProgress(progress);
+    } catch (error) {
+      console.error("Error fetching video progress:", error);
+    }
+  };
+
+  // Save video progress
+  const handleVideoProgress = async (videoId: string, watchedSeconds: number, progressPercentage: number) => {
+    if (!user) return;
+
+    const video = videos.find(v => v.id === videoId);
+    if (!video) return;
+
+    const isCompleted = progressPercentage >= 90;
+
+    try {
+      const existingProgress = videoProgress[videoId];
+
+      if (existingProgress) {
+        // Update existing progress
+        const progressDoc = doc(db, COLLECTIONS.USER_VIDEO_PROGRESS, existingProgress.id);
+        await updateDoc(progressDoc, {
+          watched_seconds: watchedSeconds,
+          progress_percentage: progressPercentage,
+          completed: isCompleted,
+          last_watched: Timestamp.now(),
+          ...(isCompleted && !existingProgress.completed ? { completed_date: Timestamp.now() } : {}),
+        });
+      } else {
+        // Create new progress record
+        await addDoc(collection(db, COLLECTIONS.USER_VIDEO_PROGRESS), {
+          user_id: user.uid,
+          video_id: videoId,
+          watched_seconds: watchedSeconds,
+          total_duration: video.duration,
+          progress_percentage: progressPercentage,
+          completed: isCompleted,
+          last_watched: Timestamp.now(),
+          ...(isCompleted ? { completed_date: Timestamp.now() } : {}),
+        });
+      }
+
+      // Refresh progress
+      await fetchVideoProgress();
+    } catch (error) {
+      console.error("Error saving video progress:", error);
+    }
+  };
+
+  // Fetch all upcoming scheduled sessions
+  const fetchUpcomingSessions = async () => {
+    if (!user) return;
+    
+    setLoadingSessions(true);
+    try {
+      const now = Timestamp.now();
+      const sessionsRef = collection(db, "sessions");
+      const q = query(
+        sessionsRef,
+        where("user_id", "==", user.uid),
+        where("status", "==", "scheduled"),
+        where("day", ">=", now),
+        orderBy("day", "asc")
+      );
+
+      const snapshot = await getDocs(q);
+      const sessions: Session[] = [];
+      snapshot.forEach((doc) => {
+        sessions.push({ id: doc.id, ...doc.data() } as Session);
+      });
+      setUpcomingSessions(sessions);
+    } catch (error: any) {
+      // Handle index not ready or collection doesn't exist yet
+      if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+        console.log("Firestore index is being created. Sessions will appear once ready.");
+      } else {
+        console.error("Error fetching sessions:", error);
+      }
+      setUpcomingSessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchVideos();
+      fetchVideoProgress();
+      fetchUpcomingSessions();
+    }
+  }, [user]);
+
+  const formatSessionTime = (session: Session) => {
+    const date = session.day.toDate();
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    const dayName = dayNames[date.getDay()];
+    const day = date.getDate();
+    const month = monthNames[date.getMonth()];
+    
+    return `${dayName} ${day} ${month}, ${session.time}`;
+  };
+
+  // Helper function to format duration from seconds to MM:SS
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Group videos by phase
+  const videosByPhase = videos.reduce((acc, video) => {
+    if (!acc[video.phase]) {
+      acc[video.phase] = [];
+    }
+    acc[video.phase].push(video);
+    return acc;
+  }, {} as Record<number, VideoType[]>);
+
+  // Get unique phases from videos
+  const phases = Object.keys(videosByPhase).map(Number).sort((a, b) => a - b);
+  
+  // Get current phase videos
+  const currentPhaseVideos = videosByPhase[selectedPhase] || [];
+
+  // Phase titles mapping
+  const phaseTitles: Record<number, string> = {
+    1: "Fase 1: Reset Integral",
+    2: "Fase 2: Regenerativa",
+    3: "Fase 3: Mi Nuevo Sentir",
+    4: "Fase 4: Transformación Sostenible",
+  };
+
+  // Phase images mapping  
+  const phaseImages: Record<number, string> = {
+    1: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgfOaQ7g0I96xmkbGtyG08buzx7ird0-EKBGBylXBqyblFqU_BwtCKa3mDkSAYNFEoaWJtHc1khnfXmDHE7_UmaVoNFi3Uz0NUDjJIDp5fzgLwxKY5l_5QX_8eei1QNDLIbcvUWRYcZv6b9g5ispzzRAyqRY34_yXj7CAHWJCqHPH-GH6GZcHprg0oZ9gIQ98wgJDLpeKXAunts9BeeMiGTUReEni-_F6MHzlAsYvqozUgQm49IQi8Z1zd0Hn2lqfSytoCFABwfQ",
+    2: "https://lh3.googleusercontent.com/aida-public/AB6AXuCrg3jTg70_rOhFdHViWf6kEwo8hDesi9hVlvAMy5_j6sWUXD3SkghbmTfjdRCwWIa20nPFZt1MFDzh0U4_Q7LryNE_nkUcd8ZbNAFtblZfT-qurxhFCW_-0WzTzkxvMRo0jUxBYZZ-C-vqpJSCIs1atsfBj4ffOgY-dhcBUPWg-qdrhTEJJJKPJRX48cIenGdu-5XaTzbj3grxojKWXD8dpgTI-forkGkPLLDNRRWifFqUfvMMcTg7qaZpUblMHA7lnrQsRNGxAg",
+    3: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmV1mI9QLaTjZJMUfAt0durOXOyyoxW9CJgHa8bLSRdDbBvt3cfu72JATadatYf6FQAmNMJvwBCg2TF6N-HNFgE9zajFlaZ8SreBOT7KFyLoc-6HHmjp4meFSdK5VgCieFUVQIYTRWMlmjZjzEz2T6DhAYF-j3io6WPxqPpFUS-dnvTCwHDnv4oXOXzn0ceHGePRvpKoV8vOQtqZQnosCqnVp3U5aXDnJg_-3W38mBDOv4tm7p7MDPe03ktSUrNbL6e6HnBzRzsw",
+    4: "https://lh3.googleusercontent.com/aida-public/AB6AXuCA4BN3XKQAv4z29K1fDub9JZcYfoHG8SZOLX0pN_VEsWM2YkpZ_VHVW0ndLJLw4ktEBxP7zaOyAK6xxj6YCePrfr5OJlOiV1hRmXfkZUuHVNTE8zeHjrz7_jHxJ8QdRINzrtm1N2tqpjfpu3BhDbYroTNbAWZE25bv7B8Mw-SraUQdYa4EHfhcNiaAU8MovL_WeyCr-oHNZe_c4MmB1fMIkwBIDVPnLnhnbgt9lFD6UUuzV5bJ_0M133rxZlg8PDr4yODNu9cWzg",
+  };
+
+  // Calculate progress per phase (percentage of completed videos)
+  const calculatePhaseProgress = (phase: number): number => {
+    const phaseVideos = videosByPhase[phase] || [];
+    if (phaseVideos.length === 0) return 0;
+    const completedCount = phaseVideos.filter(v => videoProgress[v.id]?.completed).length;
+    return Math.round((completedCount / phaseVideos.length) * 100);
+  };
+
+  const handleSessionScheduled = () => {
+    // Refresh the sessions list
+    fetchUpcomingSessions();
   };
 
   useEffect(() => {
@@ -217,7 +261,7 @@ export default function PanelPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-panel-bg">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-panel-text">Cargando...</div>
       </div>
     );
@@ -228,14 +272,12 @@ export default function PanelPage() {
   }
 
   // Get user's first name from email or displayName
-  const firstName = user.displayName?.split(" ")[0] || user.email?.split("@")[0] || "User";
+  const firstName = user.displayName?.split(" ")[0] || user.email?.split("@")[0] || "Usuario";
 
   return (
-    <div className="min-h-screen bg-panel-bg">
+    <div className="min-h-screen">
       <div className="mx-auto flex max-w-[1024px] flex-col px-2 py-8 sm:px-10">
-        <h1 className="pb-8 text-left text-3xl font-bold leading-tight tracking-tight text-panel-text sm:text-4xl">
-          Bienvenid@, {firstName}
-        </h1>
+       
 
     
 
@@ -243,31 +285,44 @@ export default function PanelPage() {
         <div className="mb-8">
           <h2 className="mb-4 text-2xl font-bold text-panel-text">Próximas Actividades</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <NextActivityCard
-              icon="groups"
-              title="1-on-1 Session"
-              time="Tomorrow, 3:00 PM"
-            />
+            {upcomingSessions.length > 0 ? (
+              upcomingSessions.map((session) => (
+                <NextActivityCard
+                  key={session.id}
+                  icon="groups"
+                  title={`Sesión ${session.coach}`}
+                  time={formatSessionTime(session)}
+                  hasSession={true}
+                />
+              ))
+            ) : (
+              <NextActivityCard
+                icon="groups"
+                title="Sesión 1-on-1"
+                hasSession={false}
+                onSchedule={() => setIsScheduleModalOpen(true)}
+              />
+            )}
             <NextActivityCard
               icon="self_improvement"
-              title="Meditation"
-              time="Today, 8:00 PM"
+              title="Meditación"
+              time="Hoy, 8:00 PM"
             />
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h2 className="mb-4 text-2xl font-bold text-panel-text">Journal</h2>
+        {/* <h2 className="mb-4 text-2xl font-bold text-panel-text">Diario</h2> */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <QuickActionButton
               icon="edit_note"
-              label="Journal"
+              label="Diario"
               onClick={() => router.push("/journal")}
             />
             <QuickActionButton
               icon="scale"
-              label="Log weight/height"
+              label="Registrar peso/altura"
               onClick={() => {
                 // TODO: Open weight logging modal
                 console.log("Log weight");
@@ -275,11 +330,8 @@ export default function PanelPage() {
             />
             <QuickActionButton
               icon="spa"
-              label="Daily Meditation"
-              onClick={() => {
-                // TODO: Open meditation tracker
-                console.log("Daily meditation");
-              }}
+              label="Meditación Diaria"
+              onClick={() => router.push("/meditar")}
             />
           </div>
         </div>
@@ -289,14 +341,14 @@ export default function PanelPage() {
         <div className="mb-8">
           {/* <h2 className="mb-4 text-2xl font-bold text-panel-text">Fases del Programa</h2> */}
           <div className="grid grid-flow-row lg:grid-flow-col gap-2 rounded-3xl">
-            {phases.map((phase) => (
+            {phases.map((phaseNumber) => (
               <PhaseTab
-                key={phase.id}
-                imageUrl={phase.imageUrl}
-                title={phase.title}
-                progress={phase.progress}
-                isSelected={selectedPhase === phase.id}
-                onClick={() => setSelectedPhase(phase.id)}
+                key={phaseNumber}
+                imageUrl={phaseImages[phaseNumber] || ""}
+                title={phaseTitles[phaseNumber] || `Fase ${phaseNumber}`}
+                progress={calculatePhaseProgress(phaseNumber)}
+                isSelected={selectedPhase === phaseNumber}
+                onClick={() => setSelectedPhase(phaseNumber)}
               />
             ))}
           </div>
@@ -306,23 +358,45 @@ export default function PanelPage() {
         {/* Videos Section - Changes based on selected phase */}
         <div>
           <h2 className="mb-4 text-2xl font-bold text-panel-text">
-            {currentPhase.title} - Videos
+            {phaseTitles[selectedPhase] || `Fase ${selectedPhase}`} - Videos
           </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {currentPhase.videos.map((video) => (
-              <VideoCard
-                key={video.id}
-                title={video.title}
-                description={video.description}
-                duration={video.duration}
-                imageUrl={video.imageUrl}
-                isCompleted={video.isCompleted}
-                onClick={() => handleVideoClick(video.id)}
-              />
-            ))}
-          </div>
+          {loadingVideos ? (
+            <div className="text-panel-muted">Cargando videos...</div>
+          ) : currentPhaseVideos.length === 0 ? (
+            <div className="text-panel-muted">No hay videos disponibles para esta fase.</div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {currentPhaseVideos.map((video: VideoType) => (
+                <VideoCard
+                  key={video.id}
+                  title={video.title}
+                  description={video.description}
+                  duration={formatDuration(video.duration)}
+                  imageUrl={video.thumbnail_url}
+                  isCompleted={videoProgress[video.id]?.completed || false}
+                  onClick={() => setSelectedVideo(video)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Schedule Session Modal */}
+      <ScheduleSessionModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        onSessionScheduled={handleSessionScheduled}
+      />
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          video={selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          onProgress={handleVideoProgress}
+        />
+      )}
     </div>
   );
 }

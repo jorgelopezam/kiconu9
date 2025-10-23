@@ -100,5 +100,130 @@ service cloud.firestore {
       // - User owns this objective
       allow delete: if isAdmin() || isOwner(resource.data.user_id);
     }
+    
+    // Sessions collection
+    match /sessions/{sessionId} {
+      // Allow list (query) if:
+      // - User is admin (can list all sessions)
+      // - User is authenticated (will filter by user_id in query)
+      allow list: if isAdmin() || isAuthenticated();
+      
+      // Allow get (single document read) if:
+      // - User is admin (can read all sessions)
+      // - User is reading their own session
+      allow get: if isAdmin() || (isAuthenticated() && resource.data.user_id == request.auth.uid);
+      
+      // Allow create if:
+      // - User is creating their own session
+      // - Admin is creating any session
+      allow create: if (isAuthenticated() && 
+                       isOwner(request.resource.data.user_id) &&
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.status == 'scheduled' &&
+                       request.resource.data.coach in ['Nutricion', 'Transpersonal'] &&
+                       request.resource.data.duration == 90) ||
+                       (isAdmin() &&
+                       request.resource.data.user_id is string &&
+                       request.resource.data.status in ['scheduled', 'finished', 'cancelled'] &&
+                       request.resource.data.coach in ['Nutricion', 'Transpersonal']);
+      
+      // Allow update if:
+      // - Admin is updating any session
+      allow update: if isAdmin();
+      
+      // Allow delete if:
+      // - Admin is deleting any session
+      allow delete: if isAdmin();
+    }
+    
+    // Coupons collection
+    match /coupons/{couponId} {
+      // Allow read if:
+      // - User is admin (can read all coupons)
+      // - User is authenticated (for applying coupons)
+      allow read: if isAuthenticated();
+      
+      // Allow create if:
+      // - User is admin
+      allow create: if isAdmin() &&
+                       request.resource.data.created_by == request.auth.uid &&
+                       request.resource.data.code is string &&
+                       request.resource.data.discount is number &&
+                       request.resource.data.campaign is string &&
+                       request.resource.data.expiration_date is timestamp &&
+                       request.resource.data.created_at is timestamp &&
+                       request.resource.data.redeemed_count == 0;
+      
+      // Allow update if:
+      // - User is admin (for editing coupons)
+      allow update: if isAdmin();
+      
+      // Allow delete if:
+      // - User is admin
+      allow delete: if isAdmin();
+    }
+    
+    // Videos collection
+    match /videos/{videoId} {
+      // Allow read if:
+      // - User is authenticated (all users can view published videos)
+      allow read: if isAuthenticated();
+      
+      // Allow create if:
+      // - User is admin
+      allow create: if isAdmin() &&
+                       request.resource.data.title is string &&
+                       request.resource.data.description is string &&
+                       request.resource.data.thumbnail_url is string &&
+                       request.resource.data.phase in [1, 2, 3] &&
+                       request.resource.data.order is number &&
+                       request.resource.data.date_added is timestamp &&
+                       request.resource.data.status in ['Publicado', 'Borrador'] &&
+                       request.resource.data.duration is number &&
+                       request.resource.data.mux_asset_id is string &&
+                       request.resource.data.mux_playback_id is string &&
+                       request.resource.data.category in ['Nutrición', 'Transpersonal'] &&
+                       request.resource.data.created_by == request.auth.uid;
+      
+      // Allow update if:
+      // - User is admin
+      allow update: if isAdmin();
+      
+      // Allow delete if:
+      // - User is admin
+      allow delete: if isAdmin();
+    }
+    
+    // User video progress collection
+    match /user_video_progress/{progressId} {
+      // Allow read if:
+      // - User is admin
+      // - User owns this progress record
+      allow read: if isAdmin() || isOwner(resource.data.user_id);
+      
+      // Allow create if:
+      // - User is creating their own progress record
+      allow create: if isAuthenticated() && 
+                       isOwner(request.resource.data.user_id) &&
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.video_id is string &&
+                       request.resource.data.watched_seconds is number &&
+                       request.resource.data.total_duration is number &&
+                       request.resource.data.progress_percentage is number &&
+                       request.resource.data.completed is bool &&
+                       request.resource.data.last_watched is timestamp;
+      
+      // Allow update if:
+      // - User is admin
+      // - User owns this progress record (cannot change user_id or video_id)
+      allow update: if isAdmin() || 
+                       (isOwner(resource.data.user_id) && 
+                        request.resource.data.user_id == resource.data.user_id &&
+                        request.resource.data.video_id == resource.data.video_id);
+      
+      // Allow delete if:
+      // - User is admin
+      allow delete: if isAdmin();
+    }
   }
 }

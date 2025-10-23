@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kiconu - My Activities</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#464c1a",
+            "background-light": "#f7f8f6",
+            "background-dark": "#1d1e14",
+          },
+          fontFamily: {
+            "display": ["Lexend"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
+<main class="flex-1 p-4 sm:p-6 md:p-8">
+<div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+<div class="flex items-center gap-4">
+<p class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">Activities</p>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2">
+<span class="material-symbols-outlined text-xl">add</span>
+<span class="truncate">Add Session</span>
+</button>
+</div>
+<div class="flex px-4 py-3">
+<div class="flex h-10 flex-1 items-center justify-center rounded-xl bg-[#f3f4f1] dark:bg-gray-800 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-4 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-medium leading-normal">
+<span class="truncate">Day</span>
+<input class="invisible w-0" name="view-switcher" type="radio" value="Day"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-4 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-medium leading-normal">
+<span class="truncate">Week</span>
+<input class="invisible w-0" name="view-switcher" type="radio" value="Week"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-4 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-medium leading-normal">
+<span class="truncate">Month</span>
+<input checked="" class="invisible w-0" name="view-switcher" type="radio" value="Month"/>
+</label>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
+<div class="flex items-center justify-between mb-4">
+<button>
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 flex size-10 items-center justify-center">chevron_left</span>
+</button>
+<p class="text-gray-900 dark:text-white text-xl font-bold leading-tight text-center">October 2024</p>
+<button>
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 flex size-10 items-center justify-center">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-7 gap-1">
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">S</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">M</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">T</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">W</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">T</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">F</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-bold leading-normal tracking-[0.015em] flex h-12 w-full items-center justify-center pb-0.5">S</p>
+<div class="col-start-3 h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">1</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">2</span>
+<div class="bg-primary/20 text-primary dark:bg-primary/30 dark:text-white text-xs font-semibold rounded p-1 mt-1 truncate">Olivia Chen</div>
+<div class="bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-100 text-xs font-semibold rounded p-1 mt-1 truncate">Benjamin Carter</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">3</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">4</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col bg-primary text-white">
+<span class="font-bold text-sm">5</span>
+<div class="bg-white/30 text-white text-xs font-semibold rounded p-1 mt-1 truncate">Sophia Rodriguez</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">6</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">7</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">8</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">9</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">10</span>
+<div class="bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-100 text-xs font-semibold rounded p-1 mt-1 truncate">Liam Goldberg</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">11</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">12</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">13</span>
+<div class="bg-primary/20 text-primary dark:bg-primary/30 dark:text-white text-xs font-semibold rounded p-1 mt-1 truncate">Ava Nguyen</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">14</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">15</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">16</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">17</span>
+<div class="bg-primary/20 text-primary dark:bg-primary/30 dark:text-white text-xs font-semibold rounded p-1 mt-1 truncate">Noah Patel</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">18</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">19</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">20</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">21</span>
+<div class="bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-100 text-xs font-semibold rounded p-1 mt-1 truncate">Isabella Kim</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">22</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">23</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">24</span>
+<div class="bg-primary/20 text-primary dark:bg-primary/30 dark:text-white text-xs font-semibold rounded p-1 mt-1 truncate">Jameson O'Connell</div>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">25</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">26</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">27</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">28</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">29</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">30</span>
+</div>
+<div class="h-28 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 flex flex-col">
+<span class="text-gray-800 dark:text-gray-200 font-medium text-sm">31</span>
+<div class="bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-100 text-xs font-semibold rounded p-1 mt-1 truncate">Chloe Dubois</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</div>
+</body></html>

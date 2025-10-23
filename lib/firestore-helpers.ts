@@ -93,6 +93,18 @@ export async function setUserAdmin(userId: string, isAdmin: boolean): Promise<vo
   await updateDoc(userRef, { is_admin: isAdmin });
 }
 
+// Admin function: Update a specific user field
+export async function updateUserField(userId: string, field: string, value: unknown): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, { [field]: value });
+}
+
+// Admin function: Update user email
+export async function updateUserEmail(userId: string, newEmail: string): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, { email: newEmail });
+}
+
 // Admin function: Get all users
 export async function getAllUsers(): Promise<User[]> {
   const usersRef = collection(db, COLLECTIONS.USERS);

@@ -151,8 +151,8 @@ export default function Phase1Page() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-panel-bg">
-        <div className="text-panel-text">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-panel-text">Cargando...</div>
       </div>
     );
   }
@@ -162,7 +162,7 @@ export default function Phase1Page() {
   }
 
   return (
-    <div className="min-h-screen bg-panel-bg">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
         <div className="flex flex-col gap-12">
           {/* Header */}

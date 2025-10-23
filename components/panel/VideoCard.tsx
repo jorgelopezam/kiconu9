@@ -28,8 +28,8 @@ export function VideoCard({
         
         {/* Play icon on hover (for non-completed videos) */}
         {!isCompleted && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-50 transition-opacity group-hover:opacity-100">
-            <span className="material-symbols-outlined text-8xl text-black">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="material-symbols-outlined text-7xl text-white drop-shadow-lg">
               play_circle
             </span>
           </div>
@@ -37,11 +37,11 @@ export function VideoCard({
         
         {/* Completion overlay */}
         {isCompleted && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/90">
-            <span className="material-symbols-outlined text-9xl text-panel-primary">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/85">
+            <span className="material-symbols-outlined text-8xl text-panel-primary drop-shadow-[0_0_20px_rgba(204,194,156,0.6)]">
               check_circle 
             </span>
-             Completado
+            <span className="mt-3 text-sm font-semibold text-white drop-shadow-md">Completado</span>
           </div>
         )}
       </div>

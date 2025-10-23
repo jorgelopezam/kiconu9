@@ -77,7 +77,7 @@ export function Footer() {
     <footer className="border-t border-sage/30 bg-surface py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between md:px-10">
         <LogoMark className="text-primary" textClassName="text-foreground" />
-        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Kiconu. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Kiconu. Todos los derechos reservados.</p>
         <div className="flex items-center gap-4 text-muted-foreground">
           {socials.map((item) => (
             <Link
