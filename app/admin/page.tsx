@@ -349,6 +349,8 @@ function UserCard({ user, editHandlers, onEdit }: UserCardProps) {
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [currentProfile, setCurrentProfile] = useState<FirestoreUser | null>(null);
+  const [missingUserType, setMissingUserType] = useState(false);
   const [directoryUsers, setDirectoryUsers] = useState<FirestoreUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   
