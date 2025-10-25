@@ -1,9 +1,9 @@
 import Mux from '@mux/mux-node';
 
-// Initialize Mux client with credentials
+// Initialize Mux client with credentials from environment variables
 const mux = new Mux({
-  tokenId: '15a7e9c7-0bac-4cdc-9e11-2c73c8b6f897',
-  tokenSecret: 'ay8Ytx69SZjK9TXmmz3ECfbDxodkwh5X4lDWy0rgso9m1IjfbDOR2Cd/goujGEGoaT0CQWKCrP+',
+  tokenId: process.env.MUX_TOKEN_ID!,
+  tokenSecret: process.env.MUX_TOKEN_SECRET!,
 });
 
 export interface MuxAsset {
@@ -24,7 +24,9 @@ export async function uploadVideoToMux(file: File): Promise<MuxAsset> {
   try {
     // Create a direct upload URL
     const upload = await mux.video.uploads.create({
-      cors_origin: '*',
+      cors_origin: process.env.NEXT_PUBLIC_VERCEL_URL 
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
+        : '*',
       new_asset_settings: {
         playback_policy: ['public'],
         mp4_support: 'standard',
@@ -49,7 +51,9 @@ export async function uploadVideoToMux(file: File): Promise<MuxAsset> {
 export async function createDirectUpload() {
   try {
     const upload = await mux.video.uploads.create({
-      cors_origin: '*', // In production, set this to your domain
+      cors_origin: process.env.NEXT_PUBLIC_VERCEL_URL 
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
+        : '*',
       new_asset_settings: {
         playback_policy: ['public'],
         mp4_support: 'standard',

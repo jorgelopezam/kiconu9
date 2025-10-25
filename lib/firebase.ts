@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBlihcyw8FMR-Wox3ttXzn5LMG8Vd3eMn0",
-  authDomain: "kiconu-app.firebaseapp.com",
-  projectId: "kiconu-app",
-  storageBucket: "kiconu-app.firebasestorage.app",
-  messagingSenderId: "999055210705",
-  appId: "1:999055210705:web:2232750efc2dd7273f2df0",
-  measurementId: "G-Z9BYCL16CS",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
 };
 
 // Initialize Firebase
