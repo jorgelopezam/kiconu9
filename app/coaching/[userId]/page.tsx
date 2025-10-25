@@ -118,23 +118,24 @@ export default function CoachingPage() {
         const sessionsSnapshot = await getDocs(sessionsQuery);
         if (!isMounted) return;
 
-        const loadedSessions: SessionRecord[] = sessionsSnapshot.docs
+        const loadedSessions = sessionsSnapshot.docs
           .map((doc) => {
             const data = doc.data();
             const day = data.day as Timestamp;
             if (!(day instanceof Timestamp)) return null;
-            return {
+            const session: SessionRecord = {
               id: doc.id,
               day,
               time: data.time ?? "",
               status: String(data.status ?? "scheduled").toLowerCase(),
-              coach: data.coach ?? undefined,
-              stage: data.stage ?? undefined,
-              duration: typeof data.duration === "number" ? data.duration : undefined,
-              title: data.title ?? undefined,
             };
+            if (data.coach) session.coach = data.coach;
+            if (data.stage) session.stage = data.stage;
+            if (typeof data.duration === "number") session.duration = data.duration;
+            if (data.title) session.title = data.title;
+            return session;
           })
-          .filter((session): session is SessionRecord => Boolean(session));
+          .filter((session): session is SessionRecord => session !== null);
 
         setSessions(loadedSessions);
 
@@ -146,21 +147,20 @@ export default function CoachingPage() {
         const journalSnapshot = await getDocs(journalQuery);
         if (!isMounted) return;
 
-        const loadedJournal: JournalRecord[] = journalSnapshot.docs
-          .map((doc) => {
-            const data = doc.data();
-            const dateAdded = data.date_added as Timestamp;
-            if (!(dateAdded instanceof Timestamp)) return null;
-            return {
-              id: doc.id,
-              date_added: dateAdded,
-              time: data.time,
-              first_question: data.first_question,
-              second_question: data.second_question,
-              third_question: data.third_question,
-            };
-          })
-          .filter((entry): entry is JournalRecord => Boolean(entry));
+        const loadedJournal = journalSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          const date_added = data.date_added as Timestamp;
+          if (!(date_added instanceof Timestamp)) return null;
+          const entry: JournalRecord = {
+            id: doc.id,
+            date_added,
+          };
+          if (data.time) entry.time = data.time;
+          if (data.first_question) entry.first_question = data.first_question;
+          if (data.second_question) entry.second_question = data.second_question;
+          if (data.third_question) entry.third_question = data.third_question;
+          return entry;
+        }).filter((entry): entry is JournalRecord => entry !== null);
 
         setJournalEntries(loadedJournal);
       } catch (err) {

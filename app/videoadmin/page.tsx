@@ -314,7 +314,7 @@ export default function VideoAdminPage() {
       console.log('Step 4: Waiting for asset to be ready...');
       // Step 4: Wait for asset to be ready
       let assetReady = false;
-      let assetData: { status?: string; errors?: unknown; playbackId?: string } | null = null;
+      let assetData: { status?: string; errors?: unknown; playbackId?: string; duration?: number } | null = null;
       attempts = 0;
       
       while (!assetReady && attempts < 60) {
@@ -326,6 +326,7 @@ export default function VideoAdminPage() {
             status?: string;
             errors?: unknown;
             playbackId?: string;
+            duration?: number;
           };
           
           console.log(`Attempt ${attempts + 1}: Asset status:`, assetData.status);
@@ -335,7 +336,8 @@ export default function VideoAdminPage() {
           } else if (assetData.status === 'errored') {
             // Asset processing failed
             console.error('Asset processing failed:', assetData.errors);
-            const errorMessages = assetData.errors?.messages || assetData.errors || [];
+            const errors = assetData.errors as Record<string, unknown>;
+            const errorMessages = (errors?.messages as string[]) || errors || [];
             const errorText = Array.isArray(errorMessages) 
               ? errorMessages.join(', ') 
               : JSON.stringify(errorMessages);
@@ -363,6 +365,10 @@ export default function VideoAdminPage() {
         : 0;
 
       // Step 6: Create video document in Firestore
+      if (!assetData.playbackId) {
+        throw new Error('No se pudo obtener el playback ID del video');
+      }
+      
       const thumbnailUrl = getMuxThumbnailUrl(assetData.playbackId, {
         width: 640,
         height: 360,

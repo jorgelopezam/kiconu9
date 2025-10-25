@@ -351,6 +351,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [currentProfile, setCurrentProfile] = useState<FirestoreUser | null>(null);
   const [missingUserType, setMissingUserType] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [directoryUsers, setDirectoryUsers] = useState<FirestoreUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   

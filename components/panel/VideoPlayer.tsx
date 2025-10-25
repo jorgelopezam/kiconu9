@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import MuxPlayer from '@mux/mux-player-react';
 import { Video } from '@/lib/firestore-schema';
 
@@ -11,16 +10,13 @@ interface VideoPlayerProps {
 }
 
 export function VideoPlayer({ video, onClose, onProgress }: VideoPlayerProps) {
-  const playerRef = useRef<HTMLVideoElement | null>(null);
-
-  const handleTimeUpdate = () => {
-    if (playerRef.current) {
-      const currentTime = playerRef.current.currentTime || 0;
-      const duration = playerRef.current.duration || video.duration;
-      const percentage = duration > 0 ? (currentTime / duration) * 100 : 0;
-      
-      onProgress?.(video.id, currentTime, percentage);
-    }
+  const handleTimeUpdate = (event: Event) => {
+    const target = event.target as HTMLVideoElement;
+    const currentTime = target.currentTime || 0;
+    const duration = target.duration || video.duration;
+    const percentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+    
+    onProgress?.(video.id, currentTime, percentage);
   };
 
   return (
@@ -44,7 +40,6 @@ export function VideoPlayer({ video, onClose, onProgress }: VideoPlayerProps) {
         {/* Mux Player - Full screen minimalist */}
         <div className="w-full h-full flex items-center justify-center">
           <MuxPlayer
-            ref={playerRef}
             playbackId={video.mux_playback_id}
             metadata={{
               video_id: video.id,
