@@ -20,7 +20,7 @@ export function ContactSection() {
             Coach Transpersonal
           </p>
           <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-            “Te guiaré a explorar tu mundo interior para liberar tu máximo potencial.”
+            &ldquo;Te guiaré a explorar tu mundo interior para liberar tu máximo potencial.&rdquo;
           </p>
           <a
             href="mailto:paula@kiconu.com"
@@ -37,7 +37,7 @@ export function ContactSection() {
             Nutricionista
           </p>
           <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-            “Diseñaré el mapa nutricional que tu cuerpo necesita para regenerarse y brillar.”
+            &ldquo;Diseñaré el mapa nutricional que tu cuerpo necesita para regenerarse y brillar.&rdquo;
           </p>
           <a
             href="mailto:irene@kiconu.com"

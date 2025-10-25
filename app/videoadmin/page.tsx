@@ -314,7 +314,7 @@ export default function VideoAdminPage() {
       console.log('Step 4: Waiting for asset to be ready...');
       // Step 4: Wait for asset to be ready
       let assetReady = false;
-      let assetData: any = null;
+      let assetData: { status?: string; errors?: unknown; playbackId?: string } | null = null;
       attempts = 0;
       
       while (!assetReady && attempts < 60) {
@@ -322,7 +322,11 @@ export default function VideoAdminPage() {
         
         try {
           const assetResponse = await fetch(`/api/mux/asset/${assetId}`);
-          assetData = await assetResponse.json();
+          assetData = (await assetResponse.json()) as {
+            status?: string;
+            errors?: unknown;
+            playbackId?: string;
+          };
           
           console.log(`Attempt ${attempts + 1}: Asset status:`, assetData.status);
           

@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { LogoMark } from "../common/LogoMark";
 import { LoginModal } from "../auth/LoginModal";
 import { RegisterModal } from "../auth/RegisterModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { getUserProfile } from "@/lib/firestore-helpers";
 
 export function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +17,7 @@ export function NavBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleMenu = useCallback(() => {
     setMenuOpen((prev) => !prev);
@@ -33,6 +35,37 @@ export function NavBar() {
       console.error("Failed to logout:", error);
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const resolveAdminStatus = async () => {
+      if (!user) {
+        if (isMounted) {
+          setIsAdmin(false);
+        }
+        return;
+      }
+
+      try {
+        const profile = await getUserProfile(user.uid);
+        if (isMounted) {
+          setIsAdmin(Boolean(profile?.is_admin));
+        }
+      } catch (error) {
+        console.error("Failed to determine admin status:", error);
+        if (isMounted) {
+          setIsAdmin(false);
+        }
+      }
+    };
+
+    resolveAdminStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-sage/20 bg-surface/80 backdrop-blur-md">
@@ -102,14 +135,16 @@ export function NavBar() {
                     <span className="material-symbols-outlined text-lg">self_improvement</span>
                     Meditar
                   </Link>
-                  <Link
-                    href="/videos"
-                    className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <span className="material-symbols-outlined text-lg">play_circle</span>
-                    Videos
-                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/videos"
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <span className="material-symbols-outlined text-lg">play_circle</span>
+                      Videos
+                    </Link>
+                  )}
                   <Link
                     href="/admin"
                     className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
@@ -126,22 +161,26 @@ export function NavBar() {
                     <span className="material-symbols-outlined text-lg">calendar_month</span>
                     Calendario
                   </Link>
-                  <Link
-                    href="/marketing"
-                    className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <span className="material-symbols-outlined text-lg">campaign</span>
-                    Marketing
-                  </Link>
-                  <Link
-                    href="/videoadmin"
-                    className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <span className="material-symbols-outlined text-lg">video_library</span>
-                    Video Admin
-                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/marketing"
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <span className="material-symbols-outlined text-lg">campaign</span>
+                      Marketing
+                    </Link>
+                  )}
+                  {isAdmin && (
+                    <Link
+                      href="/videoadmin"
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <span className="material-symbols-outlined text-lg">video_library</span>
+                      Video Admin
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
@@ -210,13 +249,15 @@ export function NavBar() {
                 >
                   Meditar
                 </Link>
-                <Link
-                  href="/videos"
-                  className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
-                  onClick={closeMenu}
-                >
-                  Videos
-                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/videos"
+                    className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
+                    onClick={closeMenu}
+                  >
+                    Videos
+                  </Link>
+                )}
                 <Link
                   href="/admin"
                   className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
@@ -231,20 +272,24 @@ export function NavBar() {
                 >
                   Calendario
                 </Link>
-                <Link
-                  href="/marketing"
-                  className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
-                  onClick={closeMenu}
-                >
-                  Marketing
-                </Link>
-                <Link
-                  href="/videoadmin"
-                  className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
-                  onClick={closeMenu}
-                >
-                  Video Admin
-                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/marketing"
+                    className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
+                    onClick={closeMenu}
+                  >
+                    Marketing
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link
+                    href="/videoadmin"
+                    className="text-base font-medium text-muted-foreground transition-colors hover:text-primary"
+                    onClick={closeMenu}
+                  >
+                    Video Admin
+                  </Link>
+                )}
               </>
             )}
           </nav>

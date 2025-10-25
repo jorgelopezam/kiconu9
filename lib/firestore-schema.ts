@@ -71,6 +71,16 @@ export interface UserVideoProgress {
   completed_date?: Date; // When the video was marked as completed
 }
 
+export interface JournalEntry {
+  id: string;
+  user_id: string;
+  date_added: Date;
+  time: string;
+  first_question: string;
+  second_question: string;
+  third_question: string;
+}
+
 /**
  * Collection paths
  */
@@ -80,4 +90,5 @@ export const COLLECTIONS = {
   USER_OBJECTIVES: "user_objectives",
   VIDEOS: "videos",
   USER_VIDEO_PROGRESS: "user_video_progress",
+  JOURNAL: "journal",
 } as const;

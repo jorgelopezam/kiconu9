@@ -8,8 +8,7 @@ import {
   getUserProfile, 
   updateUserField, 
   updateUserEmail,
-  updateUserType,
-  setUserAdmin 
+  updateUserType
 } from "@/lib/firestore-helpers";
 import type { User as FirestoreUser, UserType } from "@/lib/firestore-schema";
 import { updatePassword, updateEmail as updateAuthEmail } from "firebase/auth";
@@ -76,7 +75,7 @@ function EditModal({
       setValue(currentValue);
       setError(null);
     }
-  }, [isOpen, currentValue]);
+  }, [currentValue, isOpen, onClose, onSave]);
 
   const handleSave = async () => {
     if (!value.trim() && inputType !== "number") {
@@ -352,9 +351,6 @@ export default function AdminPage() {
   const router = useRouter();
   const [directoryUsers, setDirectoryUsers] = useState<FirestoreUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentProfile, setCurrentProfile] = useState<FirestoreUser | null>(null);
-  const [missingUserType, setMissingUserType] = useState(false);
   
   // Profile modal state
   const [profileModal, setProfileModal] = useState<{
@@ -464,10 +460,7 @@ export default function AdminPage() {
       }
 
       // Refresh data
-      if (userId === user?.uid) {
-        const updatedProfile = await getUserProfile(userId);
-        setCurrentProfile(updatedProfile);
-      } else {
+      if (userId !== user?.uid) {
         // Refresh all users if editing someone else
         const updatedUsers = await getAllUsers();
         const sortedUsers = updatedUsers
@@ -481,13 +474,7 @@ export default function AdminPage() {
       }
 
       // If profile modal is open for this user, refresh the modal data
-      if (profileModal.isOpen && profileModal.user?.user_id === userId) {
-        const updatedUser = await getUserProfile(userId);
-        setProfileModal({
-          isOpen: true,
-          user: updatedUser,
-        });
-      }
+      await refreshUserDetails(userId);
     } catch (error) {
       console.error("Error saving field:", error);
       throw error;
@@ -517,27 +504,34 @@ export default function AdminPage() {
     router.push(`/coaching/${userId}`);
   }, [router]);
 
+  const refreshDirectoryUsers = useCallback(async () => {
+    const updatedUsers = await getAllUsers();
+    const sortedUsers = updatedUsers
+      .filter((entry) => entry.user_id !== user?.uid)
+      .sort((a, b) => {
+        const aTime = a.registration_date instanceof Date ? a.registration_date.getTime() : 0;
+        const bTime = b.registration_date instanceof Date ? b.registration_date.getTime() : 0;
+        return bTime - aTime;
+      });
+    setDirectoryUsers(sortedUsers);
+  }, [user?.uid]);
+
+  const refreshUserDetails = useCallback(async (userId: string) => {
+    if (profileModal.isOpen && profileModal.user?.user_id === userId) {
+      const updatedUser = await getUserProfile(userId);
+      setProfileModal({
+        isOpen: true,
+        user: updatedUser,
+      });
+    }
+  }, [profileModal.isOpen, profileModal.user?.user_id]);
+
   const handleUserTypeChange = useCallback(async (userId: string, newUserType: UserType) => {
     try {
       await updateUserType(userId, newUserType);
-      
-      // Refresh the user data
-      if (userId === user?.uid) {
-        const updatedProfile = await getUserProfile(userId);
-        setCurrentProfile(updatedProfile);
-      }
-      
-      // Refresh all users list
-      const updatedUsers = await getAllUsers();
-      const sortedUsers = updatedUsers
-        .filter((entry) => entry.user_id !== user?.uid)
-        .sort((a, b) => {
-          const aTime = a.registration_date instanceof Date ? a.registration_date.getTime() : 0;
-          const bTime = b.registration_date instanceof Date ? b.registration_date.getTime() : 0;
-          return bTime - aTime;
-        });
-      setDirectoryUsers(sortedUsers);
-      
+      await refreshDirectoryUsers();
+      await refreshUserDetails(userId);
+
       // Update the profile modal if it's open
       if (profileModal.isOpen && profileModal.user?.user_id === userId) {
         const updatedUser = await getUserProfile(userId);
@@ -947,7 +941,7 @@ export default function AdminPage() {
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="rounded-xl border border-dashed border-panel-border/60 bg-panel-bg/40 p-8 text-center text-sm text-panel-muted">
-                No se encontraron usuarios que coincidan con "{searchQuery}".
+                No se encontraron usuarios que coincidan con &quot;{searchQuery}&quot;.
               </div>
             ) : (
               <div className="overflow-x-auto">

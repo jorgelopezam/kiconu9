@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase";
@@ -15,6 +15,7 @@ import {
   getDoc
 } from "firebase/firestore";
 import { getUserProfile } from "@/lib/firestore-helpers";
+import Image from "next/image";
 
 interface Coupon {
   id: string;
@@ -82,7 +83,7 @@ export default function MarketingPage() {
   }, [user, loading, router]);
 
   // Fetch coupons
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     setLoadingCoupons(true);
     try {
       const couponsRef = collection(db, "coupons");
@@ -97,7 +98,7 @@ export default function MarketingPage() {
       setCoupons(couponsList);
       
       // Fetch user data for all creators
-      const userIds = [...new Set(couponsList.map(c => c.created_by))];
+      const userIds = [...new Set(couponsList.map((c) => c.created_by))];
       const newUserCache = new Map(userCache);
       
       for (const userId of userIds) {
@@ -120,13 +121,13 @@ export default function MarketingPage() {
     } finally {
       setLoadingCoupons(false);
     }
-  };
+  }, [userCache]);
 
   useEffect(() => {
     if (isAdmin) {
       fetchCoupons();
     }
-  }, [isAdmin]);
+  }, [fetchCoupons, isAdmin]);
 
   const handleGenerateCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,9 +172,13 @@ export default function MarketingPage() {
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating coupon:", error);
-      alert("Error al generar el cupón: " + error.message);
+      const message =
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: unknown }).message ?? "Error desconocido")
+          : "Error desconocido";
+      alert("Error al generar el cupón: " + message);
     } finally {
       setIsSubmitting(false);
     }
@@ -296,10 +301,12 @@ export default function MarketingPage() {
                       onClick={() => handleDownload(asset.file)}
                       className="relative aspect-square w-full overflow-hidden rounded-lg border border-panel-border bg-white transition-shadow hover:shadow-lg dark:bg-gray-700"
                     >
-                      <img
+                      <Image
                         alt={asset.name}
                         className="h-full w-full object-cover"
                         src={`/branding/${asset.file}`}
+                        width={400}
+                        height={400}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
                         <span className="material-symbols-outlined text-4xl text-white">download</span>

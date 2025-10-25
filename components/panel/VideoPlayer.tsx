@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import MuxPlayer from '@mux/mux-player-react';
 import { Video } from '@/lib/firestore-schema';
 
@@ -11,8 +11,7 @@ interface VideoPlayerProps {
 }
 
 export function VideoPlayer({ video, onClose, onProgress }: VideoPlayerProps) {
-  const playerRef = useRef<any>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const playerRef = useRef<HTMLVideoElement | null>(null);
 
   const handleTimeUpdate = () => {
     if (playerRef.current) {
@@ -23,45 +22,6 @@ export function VideoPlayer({ video, onClose, onProgress }: VideoPlayerProps) {
       onProgress?.(video.id, currentTime, percentage);
     }
   };
-
-  const skipForward = () => {
-    if (playerRef.current) {
-      playerRef.current.currentTime = Math.min(
-        playerRef.current.currentTime + 10,
-        playerRef.current.duration
-      );
-    }
-  };
-
-  const skipBackward = () => {
-    if (playerRef.current) {
-      playerRef.current.currentTime = Math.max(
-        playerRef.current.currentTime - 10,
-        0
-      );
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      playerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
 
   return (
     <div 

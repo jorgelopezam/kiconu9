@@ -136,6 +136,36 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     
+    // Journal collection
+    match /journal/{entryId} {
+      // Allow read if:
+      // - User is admin
+      // - User owns the journal entry
+      allow read, list: if isAdmin() || isOwner(resource.data.user_id);
+
+      // Allow create if:
+      // - Authenticated user is creating their own entry
+      allow create: if isAuthenticated() &&
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.date_added is timestamp &&
+                       request.resource.data.time is string &&
+                       request.resource.data.first_question is string &&
+                       request.resource.data.second_question is string &&
+                       request.resource.data.third_question is string;
+
+      // Allow update if:
+      // - User is admin
+      // - User owns the entry and cannot change user_id
+      allow update: if isAdmin() ||
+                       (isOwner(resource.data.user_id) &&
+                        request.resource.data.user_id == resource.data.user_id);
+
+      // Allow delete if:
+      // - User is admin
+      // - User owns the entry
+      allow delete: if isAdmin() || isOwner(resource.data.user_id);
+    }
+    
     // Coupons collection
     match /coupons/{couponId} {
       // Allow read if:

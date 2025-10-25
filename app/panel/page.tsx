@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { NextActivityCard } from "@/components/panel/NextActivityCard";
@@ -38,7 +38,7 @@ export default function PanelPage() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   // Fetch videos from Firestore
-  const fetchVideos = async () => {
+  const fetchVideos = useCallback(async () => {
     console.log("🎬 Starting to fetch videos...");
     setLoadingVideos(true);
     try {
@@ -77,10 +77,10 @@ export default function PanelPage() {
       setLoadingVideos(false);
       console.log("🏁 Finished fetching videos");
     }
-  };
+  }, []);
 
   // Fetch user video progress
-  const fetchVideoProgress = async () => {
+  const fetchVideoProgress = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -89,11 +89,11 @@ export default function PanelPage() {
 
       const snapshot = await getDocs(q);
       const progress: Record<string, UserVideoProgress> = {};
-      snapshot.forEach(doc => {
-        const data = doc.data() as UserVideoProgress;
+      snapshot.forEach((docItem) => {
+        const data = docItem.data() as UserVideoProgress;
         progress[data.video_id] = {
           ...data,
-          id: doc.id,
+          id: docItem.id,
           last_watched: data.last_watched,
         };
       });
@@ -102,7 +102,7 @@ export default function PanelPage() {
     } catch (error) {
       console.error("Error fetching video progress:", error);
     }
-  };
+  }, [user]);
 
   // Save video progress
   const handleVideoProgress = async (videoId: string, watchedSeconds: number, progressPercentage: number) => {
@@ -148,7 +148,7 @@ export default function PanelPage() {
   };
 
   // Fetch all upcoming scheduled sessions
-  const fetchUpcomingSessions = async () => {
+  const fetchUpcomingSessions = useCallback(async () => {
     if (!user) return;
     
     setLoadingSessions(true);
@@ -165,14 +165,26 @@ export default function PanelPage() {
 
       const snapshot = await getDocs(q);
       const sessions: Session[] = [];
-      snapshot.forEach((doc) => {
-        sessions.push({ id: doc.id, ...doc.data() } as Session);
+      snapshot.forEach((docItem) => {
+        sessions.push({ id: docItem.id, ...docItem.data() } as Session);
       });
       setUpcomingSessions(sessions);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle index not ready or collection doesn't exist yet
-      if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "failed-precondition"
+      ) {
         console.log("Firestore index is being created. Sessions will appear once ready.");
+      } else if (typeof error === "object" && error !== null && "message" in error) {
+        const message = (error as { message?: string }).message ?? "";
+        if (message.includes("index")) {
+          console.log("Firestore index is being created. Sessions will appear once ready.");
+        } else {
+          console.error("Error fetching sessions:", error);
+        }
       } else {
         console.error("Error fetching sessions:", error);
       }
@@ -180,7 +192,7 @@ export default function PanelPage() {
     } finally {
       setLoadingSessions(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -188,7 +200,7 @@ export default function PanelPage() {
       fetchVideoProgress();
       fetchUpcomingSessions();
     }
-  }, [user]);
+  }, [fetchUpcomingSessions, fetchVideoProgress, fetchVideos, user]);
 
   const formatSessionTime = (session: Session) => {
     const date = session.day.toDate();
@@ -277,15 +289,17 @@ export default function PanelPage() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto flex max-w-[1024px] flex-col px-2 py-8 sm:px-10">
-       
-
-    
+        <h1 className="mb-6 text-3xl font-black text-panel-text">Hola, {firstName}</h1>
 
         {/* Next Activities */}
         <div className="mb-8">
           <h2 className="mb-4 text-2xl font-bold text-panel-text">Próximas Actividades</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {upcomingSessions.length > 0 ? (
+            {loadingSessions ? (
+              <div className="rounded-xl border border-panel-border bg-panel-card p-4 text-center text-panel-muted">
+                Cargando sesiones programadas...
+              </div>
+            ) : upcomingSessions.length > 0 ? (
               upcomingSessions.map((session) => (
                 <NextActivityCard
                   key={session.id}

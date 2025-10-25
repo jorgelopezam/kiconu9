@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserProfile } from "@/lib/firestore-helpers";
+import type { User } from "@/lib/firestore-schema";
 import { db } from "@/lib/firebase";
-import { collection, query, getDocs, Timestamp, deleteDoc, doc, getDoc } from "firebase/firestore";
+import { collection, query, getDocs, Timestamp, doc, getDoc } from "firebase/firestore";
 import { AdminScheduleSessionModal } from "@/components/panel/AdminScheduleSessionModal";
 import { EditSessionModal } from "@/components/panel/EditSessionModal";
 
@@ -31,20 +32,25 @@ type UserData = {
 export default function CalendarioPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [currentProfile, setCurrentProfile] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<User | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"day" | "week" | "month">("month");
   const [sessions, setSessions] = useState<SessionData[]>([]);
-  const [userCache, setUserCache] = useState<Map<string, UserData>>(new Map());
+  const [userCache, setUserCache] = useState<Map<string, UserData>>(() => new Map());
+  const userCacheRef = useRef(userCache);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<SessionData | null>(null);
   const [selectedUserDetails, setSelectedUserDetails] = useState<UserData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  useEffect(() => {
+    userCacheRef.current = userCache;
+  }, [userCache]);
+
   // Fetch all sessions from Firestore
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     setLoadingSessions(true);
     try {
       const sessionsRef = collection(db, "sessions");
@@ -54,8 +60,8 @@ export default function CalendarioPage() {
       const sessionsData: SessionData[] = [];
       const userIds = new Set<string>();
       
-      snapshot.forEach((doc) => {
-        const session = { id: doc.id, ...doc.data() } as SessionData;
+      snapshot.forEach((docItem) => {
+        const session = { id: docItem.id, ...docItem.data() } as SessionData;
         sessionsData.push(session);
         userIds.add(session.user_id);
       });
@@ -63,29 +69,48 @@ export default function CalendarioPage() {
       setSessions(sessionsData);
       
       // Fetch user details for all unique user_ids
-      const newUserCache = new Map(userCache);
+      const cacheCopy = new Map(userCacheRef.current);
+      let cacheUpdated = false;
       for (const userId of userIds) {
-        if (!newUserCache.has(userId)) {
+        if (!cacheCopy.has(userId)) {
           try {
             const userDoc = await getDoc(doc(db, "users", userId));
             if (userDoc.exists()) {
               const userData = userDoc.data();
-              newUserCache.set(userId, {
+              cacheCopy.set(userId, {
                 first_name: userData.first_name || "",
                 last_name: userData.last_name || "",
                 email: userData.email || "",
                 user_type: userData.user_type || "",
               });
+              cacheUpdated = true;
             }
-          } catch (error) {
-            console.error(`Error fetching user ${userId}:`, error);
+          } catch (userError) {
+            console.error(`Error fetching user ${userId}:`, userError);
           }
         }
       }
-      setUserCache(newUserCache);
-    } catch (error: any) {
+
+      if (cacheUpdated) {
+        userCacheRef.current = cacheCopy;
+        setUserCache(cacheCopy);
+      }
+    } catch (error: unknown) {
       // Handle collection doesn't exist yet
-      if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "failed-precondition"
+      ) {
+        console.log("Firestore index is being created or collection is empty.");
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as { message?: unknown }).message === "string" &&
+        ((error as { message?: string }).message?.includes("index") ?? false)
+      ) {
         console.log("Firestore index is being created or collection is empty.");
       } else {
         console.error("Error fetching sessions:", error);
@@ -94,7 +119,7 @@ export default function CalendarioPage() {
     } finally {
       setLoadingSessions(false);
     }
-  };
+  }, []);
 
   const handleSessionClick = async (session: SessionData) => {
     const userData = userCache.get(session.user_id);
@@ -139,7 +164,7 @@ export default function CalendarioPage() {
     };
 
     checkAdminAccess();
-  }, [user, loading, router]);
+  }, [user, loading, router, fetchSessions]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -170,21 +195,6 @@ export default function CalendarioPage() {
       currentDate.getMonth() === today.getMonth() &&
       currentDate.getFullYear() === today.getFullYear()
     );
-  };
-
-  const handleDeleteSession = async (sessionId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta sesión?")) {
-      return;
-    }
-
-    try {
-      await deleteDoc(doc(db, "sessions", sessionId));
-      // Refresh sessions
-      fetchSessions();
-    } catch (error) {
-      console.error("Error deleting session:", error);
-      alert("Error al eliminar la sesión");
-    }
   };
 
   const goToPreviousMonth = () => {
@@ -222,6 +232,11 @@ export default function CalendarioPage() {
     <div className="min-h-screen py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
         <main className="flex-1">
+          {loadingSessions && (
+            <div className="mb-4 rounded-xl border border-panel-border bg-panel-card p-4 text-sm text-panel-muted">
+              Cargando sesiones programadas...
+            </div>
+          )}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <h1 className="text-4xl font-black tracking-tight text-panel-text">Actividades</h1>
