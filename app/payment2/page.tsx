@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase";
@@ -45,6 +45,20 @@ const PLANS: Record<string, PlanDetails> = {
 };
 
 export default function Payment2Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-panel-text">Cargando...</div>
+        </div>
+      }
+    >
+      <Payment2PageContent />
+    </Suspense>
+  );
+}
+
+function Payment2PageContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
