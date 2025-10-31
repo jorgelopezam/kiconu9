@@ -24,15 +24,17 @@ export function PhaseTab({
           : "border-panel-border opacity-20 hover:opacity-75"
       }`}
     >
-      <div className="hidden h-16 w-16 overflow-hidden rounded-xl border border-black/10 bg-black/10 lg:flex">
-        <Image
-          src={imageUrl}
-          alt={title}
-          width={64}
-          height={64}
-          className="h-full w-full object-cover"
-        />
-      </div>
+      {imageUrl && (
+        <div className="hidden h-16 w-16 overflow-hidden rounded-xl border border-black/10 bg-black/10 lg:flex">
+          <Image
+            src={imageUrl}
+            alt={title}
+            width={64}
+            height={64}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
 
       <div className="flex lg:grid lg:gap-2 justify-center p-2 gap-4 m-auto items-center">
         <p className="text-center text-xl font-bold leading-normal text-black">

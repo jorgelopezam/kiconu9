@@ -70,7 +70,8 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-sage/20 bg-surface/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 md:px-10">
-        <Link href={user ? "/panel" : "/"}>
+        <Link href={user 
+          ? isAdmin ? "/panelcoach" : "/panel" : "/"}>
           <LogoMark className="text-primary" textClassName="text-foreground" />
         </Link>
 

@@ -246,9 +246,9 @@ export default function PanelPage() {
 
   // Phase images mapping  
   const phaseImages: Record<number, string> = {
-    1: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgfOaQ7g0I96xmkbGtyG08buzx7ird0-EKBGBylXBqyblFqU_BwtCKa3mDkSAYNFEoaWJtHc1khnfXmDHE7_UmaVoNFi3Uz0NUDjJIDp5fzgLwxKY5l_5QX_8eei1QNDLIbcvUWRYcZv6b9g5ispzzRAyqRY34_yXj7CAHWJCqHPH-GH6GZcHprg0oZ9gIQ98wgJDLpeKXAunts9BeeMiGTUReEni-_F6MHzlAsYvqozUgQm49IQi8Z1zd0Hn2lqfSytoCFABwfQ",
-    2: "https://lh3.googleusercontent.com/aida-public/AB6AXuCrg3jTg70_rOhFdHViWf6kEwo8hDesi9hVlvAMy5_j6sWUXD3SkghbmTfjdRCwWIa20nPFZt1MFDzh0U4_Q7LryNE_nkUcd8ZbNAFtblZfT-qurxhFCW_-0WzTzkxvMRo0jUxBYZZ-C-vqpJSCIs1atsfBj4ffOgY-dhcBUPWg-qdrhTEJJJKPJRX48cIenGdu-5XaTzbj3grxojKWXD8dpgTI-forkGkPLLDNRRWifFqUfvMMcTg7qaZpUblMHA7lnrQsRNGxAg",
-    3: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmV1mI9QLaTjZJMUfAt0durOXOyyoxW9CJgHa8bLSRdDbBvt3cfu72JATadatYf6FQAmNMJvwBCg2TF6N-HNFgE9zajFlaZ8SreBOT7KFyLoc-6HHmjp4meFSdK5VgCieFUVQIYTRWMlmjZjzEz2T6DhAYF-j3io6WPxqPpFUS-dnvTCwHDnv4oXOXzn0ceHGePRvpKoV8vOQtqZQnosCqnVp3U5aXDnJg_-3W38mBDOv4tm7p7MDPe03ktSUrNbL6e6HnBzRzsw",
+    1: "",
+    2: "",
+    3: "",
     4: "https://lh3.googleusercontent.com/aida-public/AB6AXuCA4BN3XKQAv4z29K1fDub9JZcYfoHG8SZOLX0pN_VEsWM2YkpZ_VHVW0ndLJLw4ktEBxP7zaOyAK6xxj6YCePrfr5OJlOiV1hRmXfkZUuHVNTE8zeHjrz7_jHxJ8QdRINzrtm1N2tqpjfpu3BhDbYroTNbAWZE25bv7B8Mw-SraUQdYa4EHfhcNiaAU8MovL_WeyCr-oHNZe_c4MmB1fMIkwBIDVPnLnhnbgt9lFD6UUuzV5bJ_0M133rxZlg8PDr4yODNu9cWzg",
   };
 
