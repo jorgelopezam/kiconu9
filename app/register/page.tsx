@@ -6,15 +6,30 @@ import { useAuth } from "@/contexts/AuthContext";
 import { updateUserRegistrationDetails } from "@/lib/firestore-helpers";
 
 export default function RegisterPage() {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
     age: "",
     height: "",
     weight: "",
     gender: "" as "male" | "female" | "other" | "prefer_not_to_say" | "",
   });
+
+  useEffect(() => {
+    if (userProfile && !loading) {
+      setFormData({
+        first_name: userProfile.first_name || "",
+        last_name: userProfile.last_name || "",
+        age: userProfile.age?.toString() || "",
+        height: userProfile.height?.toString() || "",
+        weight: userProfile.weight?.toString() || "",
+        gender: (userProfile.gender as any) || "",
+      });
+    }
+  }, [userProfile, loading]);
 
   useEffect(() => {
     // If not logged in, redirect to home
@@ -25,11 +40,11 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user) return;
 
     // Validate form
-    if (!formData.age || !formData.height || !formData.weight || !formData.gender) {
+    if (!formData.first_name || !formData.last_name || !formData.age || !formData.height || !formData.weight || !formData.gender) {
       alert("Por favor, completa todos los campos");
       return;
     }
@@ -39,14 +54,16 @@ export default function RegisterPage() {
 
       // Update user profile with registration details
       await updateUserRegistrationDetails(user.uid, {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         age: parseInt(formData.age),
         height: parseFloat(formData.height),
         weight: parseFloat(formData.weight),
         gender: formData.gender as "male" | "female" | "other" | "prefer_not_to_say",
       });
 
-      // Redirect to panel (user already has a plan selected)
-      router.push("/panel");
+      // Redirect to cursos (user already has a plan selected)
+      router.push("/cursos");
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Error al guardar tu información. Por favor intenta de nuevo.");
@@ -78,6 +95,40 @@ export default function RegisterPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* First Name */}
+              <div>
+                <label htmlFor="first_name" className="mb-2 block text-sm font-medium text-panel-text">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  id="first_name"
+                  required
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
+                  placeholder="Tu nombre"
+                />
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <label htmlFor="last_name" className="mb-2 block text-sm font-medium text-panel-text">
+                  Apellido
+                </label>
+                <input
+                  type="text"
+                  id="last_name"
+                  required
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
+                  placeholder="Tu apellido"
+                />
+              </div>
+            </div>
+
             {/* Age */}
             <div>
               <label htmlFor="age" className="mb-2 block text-sm font-medium text-panel-text">

@@ -51,7 +51,7 @@ Tracks user viewing progress and analytics.
 ## Features
 
 ### 1. Video Upload
-**Location**: `/videoadmin` page → "Subir Video" button
+**Location**: `/adminvideos` page → "Subir Video" button
 
 **Process**:
 1. Admin selects video file (MP4, MOV, AVI, WebM, max 5GB)
@@ -178,7 +178,7 @@ Deletes asset from Mux (not currently used in UI).
 
 ### Admin Workflow
 1. Log in as admin user (is_admin = true)
-2. Navigate to `/videoadmin`
+2. Navigate to `/adminvideos`
 3. Select phase tab (1, 2, or 3)
 4. Click "Subir Video" to upload new video
 5. Fill in video details and upload file

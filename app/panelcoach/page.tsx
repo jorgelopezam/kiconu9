@@ -484,14 +484,14 @@ export default function PanelCoachPage() {
       href: "/calendario",
     },
     {
-      label: "Usuarios",
+      label: "Admin Usuarios",
       icon: "group",
-      href: "/admin",
+      href: "/adminusuarios",
     },
     {
       label: "Videos",
       icon: "movie",
-      href: "/videoadmin",
+      href: "/adminvideos",
     },
     {
       label: "Meditaciones",
@@ -506,31 +506,12 @@ export default function PanelCoachPage() {
   ];
 
   return (
-    <div className="py-10">
-      <div className="flex flex-col gap-8 lg:flex-row">
-        <aside className="flex w-full flex-col justify-between gap-8 rounded-2xl border border-panel-border bg-panel-card p-6 shadow-sm lg:w-64 lg:flex-shrink-0">
-          <div className="flex flex-col gap-6">
-            <nav className="flex flex-col gap-2">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-panel-muted transition-colors hover:bg-panel-border/60 hover:text-panel-text"
-                >
-                  <span className="material-symbols-outlined text-base transition-colors text-panel-muted group-hover:text-panel-primary">
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+    <div className="py-4">
+      <div className="flex flex-col gap-4 lg:flex-row">
 
-          <div className="flex flex-col gap-4 border-t border-panel-border pt-6"></div>
-        </aside>
 
         <main className="flex-1">
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-4">
 
             <div className="relative" ref={searchContainerRef}>
               <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-panel-muted">
@@ -606,16 +587,15 @@ export default function PanelCoachPage() {
                               key={option.key}
                               type="button"
                               onClick={() => handleSelectFilter(option.key as typeof sessionFilter)}
-                              className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition hover:bg-panel-border/60 ${
-                                sessionFilter === option.key ? "text-panel-text" : "text-panel-muted"
-                              }`}
+                              className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition hover:bg-panel-border/60 ${sessionFilter === option.key ? "text-panel-text" : "text-panel-muted"
+                                }`}
                             >
                               <span className="material-symbols-outlined text-sm">
                                 {option.key === "nutricion"
                                   ? "restaurant"
                                   : option.key === "transpersonal"
-                                  ? "self_improvement"
-                                  : "filter_alt"}
+                                    ? "self_improvement"
+                                    : "filter_alt"}
                               </span>
                               {option.label}
                             </button>
@@ -646,11 +626,10 @@ export default function PanelCoachPage() {
                       return (
                         <div
                           key={session.id}
-                          className={`rounded-xl border px-4 py-2 text-sm shadow-sm transition duration-200 ${
-                            overdue
-                              ? "border-red-400/80 bg-red-500/5"
-                              : "border-panel-border bg-panel-bg"
-                          }`}
+                          className={`rounded-xl border px-4 py-2 text-sm shadow-sm transition duration-200 ${overdue
+                            ? "border-red-400/80 bg-red-500/5"
+                            : "border-panel-border bg-panel-bg"
+                            }`}
                         >
                           <div className="flex flex-col gap-2">
                             <div className="flex flex-col  items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -658,7 +637,7 @@ export default function PanelCoachPage() {
                                 <p className={`text-xs font-bold ${overdue ? "text-red-600" : "text-panel-text"}`}>
                                   {schedule}
                                 </p>
-                                
+
                                 {overdue && (
                                   <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-600">
                                     Vencida
@@ -697,11 +676,11 @@ export default function PanelCoachPage() {
                             <div className="flex  gap-4 justify-between">
                               <p className="  text-panel-text">{displayName}</p>
                               <span
-                                  className={`inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs  ${coachStyles.badgeBg} ${coachStyles.badgeText}`}
-                                >
-                                  <span className={`size-1.5 rounded-full ${coachStyles.dot}`}></span>
-                                  {coachStyles.label}
-                                </span>
+                                className={`inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs  ${coachStyles.badgeBg} ${coachStyles.badgeText}`}
+                              >
+                                <span className={`size-1.5 rounded-full ${coachStyles.dot}`}></span>
+                                {coachStyles.label}
+                              </span>
                             </div>
                           </div>
                         </div>

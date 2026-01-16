@@ -2,20 +2,24 @@
 
 import { useState, type FormEvent, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserProfile } from "@/lib/firestore-helpers";
 
 type LoginModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  onShowRegister: () => void;
 };
 
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export function LoginModal({ isOpen, onClose, onShowRegister }: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { signInWithEmail, signInWithGoogle } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -24,16 +28,33 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   if (!isOpen || !mounted) return null;
 
+  const handleRedirect = async (userId: string) => {
+    try {
+      const profile = await getUserProfile(userId);
+      if (profile?.is_admin) {
+        router.push("/panelcoach");
+      } else if (profile?.user_type === "base") {
+        router.push("/cursos");
+      } else {
+        router.push("/panel");
+      }
+    } catch (error) {
+      console.error("Error fetching profile for redirect:", error);
+      router.push("/panel");
+    }
+  };
+
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      await signInWithEmail(email, password);
+      const userCredential = await signInWithEmail(email, password);
       onClose();
       setEmail("");
       setPassword("");
+      await handleRedirect(userCredential.user.uid);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -50,8 +71,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setLoading(true);
 
     try {
-      await signInWithGoogle();
+      const userCredential = await signInWithGoogle();
       onClose();
+      await handleRedirect(userCredential.user.uid);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -133,6 +155,21 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            ¿No tienes cuenta?{" "}
+            <button
+              onClick={() => {
+                onClose();
+                onShowRegister();
+              }}
+              className="font-medium text-primary hover:underline hover:text-primary-600 transition-colors"
+            >
+              Regístrate Aquí
+            </button>
+          </p>
+        </div>
 
         <div className="my-6 flex items-center gap-4">
           <div className="h-px flex-1 bg-sage/30" />

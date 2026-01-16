@@ -255,5 +255,28 @@ service cloud.firestore {
       // - User is admin
       allow delete: if isAdmin();
     }
+
+    // Courses collection
+    match /courses/{courseId} {
+      // Allow read if:
+      // - User is authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow create if:
+      // - User is admin
+      allow create: if isAdmin() &&
+                       request.resource.data.title is string &&
+                       request.resource.data.access_level in ['restricted', 'base', 'kiconu', 'premium', 'all'] &&
+                       request.resource.data.status in ['active', 'inactive'] &&
+                       request.resource.data.created_by == request.auth.uid;
+      
+      // Allow update if:
+      // - User is admin
+      allow update: if isAdmin();
+      
+      // Allow delete if:
+      // - User is admin
+      allow delete: if isAdmin();
+    }
   }
 }

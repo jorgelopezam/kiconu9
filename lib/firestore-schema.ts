@@ -23,6 +23,7 @@ export interface User {
   gender?: "male" | "female" | "other" | "prefer_not_to_say";
   user_type: UserType;  // null means not yet selected (needs to go to payment)
   is_admin: boolean;
+  course_access?: string[]; // Array of course IDs for restricted course access
 }
 
 export interface UserWeight {
@@ -81,6 +82,19 @@ export interface JournalEntry {
   third_question: string;
 }
 
+// Course types
+export type CourseAccessLevel = "restricted" | "base" | "kiconu" | "premium" | "all";
+export type CourseStatus = "active" | "inactive";
+
+export interface Course {
+  id: string;
+  title: string;
+  access_level: CourseAccessLevel;
+  status: CourseStatus;
+  created_at: Date;
+  created_by: string; // user_id of admin who created
+}
+
 /**
  * Collection paths
  */
@@ -91,4 +105,5 @@ export const COLLECTIONS = {
   VIDEOS: "videos",
   USER_VIDEO_PROGRESS: "user_video_progress",
   JOURNAL: "journal",
+  COURSES: "courses",
 } as const;

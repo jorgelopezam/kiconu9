@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  getAllUsers, 
-  getUserProfile, 
-  updateUserField, 
+import {
+  getAllUsers,
+  getUserProfile,
+  updateUserField,
   updateUserEmail,
   updateUserType
 } from "@/lib/firestore-helpers";
@@ -56,15 +56,15 @@ type EditModalProps = {
   placeholder?: string;
 };
 
-function EditModal({ 
-  isOpen, 
-  onClose, 
-  onSave, 
-  title, 
-  label, 
-  currentValue, 
+function EditModal({
+  isOpen,
+  onClose,
+  onSave,
+  title,
+  label,
+  currentValue,
   inputType = "text",
-  placeholder 
+  placeholder
 }: EditModalProps) {
   const [value, setValue] = useState(currentValue);
   const [saving, setSaving] = useState(false);
@@ -103,7 +103,7 @@ function EditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-2xl border border-panel-border bg-panel-card p-6 shadow-xl">
         <h3 className="mb-4 text-xl font-bold text-panel-text">{title}</h3>
-        
+
         <div className="mb-4">
           <label className="mb-2 block text-sm font-medium text-panel-muted">{label}</label>
           <input
@@ -354,7 +354,7 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [directoryUsers, setDirectoryUsers] = useState<FirestoreUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
-  
+
   // Profile modal state
   const [profileModal, setProfileModal] = useState<{
     isOpen: boolean;
@@ -363,13 +363,13 @@ export default function AdminPage() {
     isOpen: false,
     user: null,
   });
-  
+
   // Collapsible profile section state - open by default for non-admin users
   const [isProfileCollapsed, setIsProfileCollapsed] = useState(false);
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Edit modal state
   const [editModal, setEditModal] = useState<{
     isOpen: boolean;
@@ -390,8 +390,8 @@ export default function AdminPage() {
   });
 
   const openEditModal = useCallback((
-    field: EditableField, 
-    userId: string, 
+    field: EditableField,
+    userId: string,
     currentValue: string | number | undefined,
     isCurrentUser: boolean
   ) => {
@@ -405,7 +405,7 @@ export default function AdminPage() {
     };
 
     const config = fieldConfig[field];
-    
+
     setEditModal({
       isOpen: true,
       field,
@@ -438,7 +438,7 @@ export default function AdminPage() {
       if (field === "email") {
         // Update email in Firestore
         await updateUserEmail(userId, value);
-        
+
         // If editing current user's email, also update Firebase Auth
         if (user && userId === user.uid) {
           await updateAuthEmail(user, value);
@@ -551,7 +551,7 @@ export default function AdminPage() {
 
   const profileEditHandlers = useMemo<Partial<Record<EditableField, () => void>>>(() => {
     if (!currentProfile) return {};
-    
+
     return {
       email: () => handleEditField("email", currentProfile.user_id, currentProfile.email),
       password: () => handleEditField("password", currentProfile.user_id, ""),
@@ -565,13 +565,13 @@ export default function AdminPage() {
   // Filter users based on search query
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return directoryUsers;
-    
+
     const query = searchQuery.toLowerCase();
     return directoryUsers.filter((user) => {
       const firstName = user.first_name?.toLowerCase() || "";
       const lastName = user.last_name?.toLowerCase() || "";
       const email = user.email?.toLowerCase() || "";
-      
+
       return firstName.includes(query) || lastName.includes(query) || email.includes(query);
     });
   }, [directoryUsers, searchQuery]);
@@ -614,10 +614,11 @@ export default function AdminPage() {
 
         setMissingUserType(false);
         setCurrentProfile(profile);
-        
-        // Set profile collapsed to true for admins, false for non-admins
-        setIsProfileCollapsed(profile.is_admin);
 
+        setMissingUserType(false);
+        setCurrentProfile(profile);
+
+        // Always admin if we are here (guarded by AuthGuard ideally, but double check)
         if (profile.is_admin) {
           const fetchedUsers = await getAllUsers();
 
@@ -636,7 +637,7 @@ export default function AdminPage() {
 
           setDirectoryUsers(sortedUsers);
         }
-        
+
         if (isMounted) {
           setUsersLoading(false);
         }
@@ -716,7 +717,7 @@ export default function AdminPage() {
         user={profileModal.user}
         onEdit={handleEditField}
       />
-      
+
       <EditModal
         isOpen={editModal.isOpen}
         onClose={closeEditModal}
@@ -726,178 +727,50 @@ export default function AdminPage() {
         currentValue={editModal.currentValue}
         inputType={editModal.inputType}
       />
-      
+
       <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4">
         {isAdmin && (
-          <section className="rounded-2xl border border-panel-border bg-panel-card p-6 shadow-lg">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex size-16 items-center justify-center rounded-full bg-panel-primary/20 text-xl font-semibold text-panel-primary">
-                  {getInitials(currentProfile?.first_name, currentProfile?.last_name, user.email ?? undefined)}
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-panel-text">{adminFullName || user.email}</h1>
-                  <p className="text-sm text-panel-muted">{user.email}</p>
-                </div>
-              </div>
-              <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
-                <span className="rounded-xl border border-panel-border px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.12em] text-panel-muted">
-                  {userTypeLabel}
-                </span>
-                {isAdmin && (
-                  <span className="rounded-xl border border-panel-primary/40 px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.12em] text-panel-primary">
-                    Admin Access
-                  </span>
-                )}
-                <span className="rounded-xl bg-panel-primary px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.12em] text-panel-text-light">
-                  {totalUsersCount} {totalUsersCount === 1 ? "user" : "users"}
-                </span>
-              </div>
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Base Users */}
+            <div className="rounded-2xl border border-panel-border bg-panel-card p-6 shadow-sm">
+              <p className="text-sm font-medium text-panel-muted uppercase tracking-wider">Plan Base</p>
+              <p className="mt-2 text-3xl font-bold text-panel-text">
+                {directoryUsers.filter(u => u.user_type === 'base').length}
+              </p>
+            </div>
+
+            {/* Kiconu Users */}
+            <div className="rounded-2xl border border-panel-border bg-panel-card p-6 shadow-sm">
+              <p className="text-sm font-medium text-panel-muted uppercase tracking-wider">Plan Kiconu</p>
+              <p className="mt-2 text-3xl font-bold text-panel-text">
+                {directoryUsers.filter(u => u.user_type === 'kiconu').length}
+              </p>
+            </div>
+
+            {/* Premium Users */}
+            <div className="rounded-2xl border border-panel-border bg-panel-card p-6 shadow-sm">
+              <p className="text-sm font-medium text-panel-muted uppercase tracking-wider">Plan Premium</p>
+              <p className="mt-2 text-3xl font-bold text-panel-text">
+                {directoryUsers.filter(u => u.user_type === 'premium').length}
+              </p>
+            </div>
+
+            {/* New Users (This Month) */}
+            <div className="rounded-2xl border border-panel-border bg-panel-card p-6 shadow-sm">
+              <p className="text-sm font-medium text-panel-muted uppercase tracking-wider">Nuevos (Mes)</p>
+              <p className="mt-2 text-3xl font-bold text-panel-primary">
+                {directoryUsers.filter(u => {
+                  if (!u.registration_date) return false;
+                  const date = u.registration_date instanceof Date ? u.registration_date : new Date(u.registration_date);
+                  const now = new Date();
+                  return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                }).length}
+              </p>
             </div>
           </section>
         )}
 
-        {currentProfile && !isAdmin && (
-          <>
-            {/* Mi Perfil Section */}
-            <section className="p-4">
-              <div className="flex max-w-2xl m-auto flex-col gap-4 rounded-xl bg-panel-card p-2 shadow-lg md:flex-row md:items-center md:justify-between border border-panel-border">
-                <div className="flex gap-4 items-center">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-panel-primary/15 text-lg font-semibold text-panel-primary flex-shrink-0">
-                    {getInitials(currentProfile.first_name, currentProfile.last_name, currentProfile.email)}
-                  </div>
-                  <div className="flex flex-col justify-center ">
-                    <p className="text-lg   tracking-[-0.015em] text-panel-text">
-                      {[currentProfile.first_name, currentProfile.last_name].filter(Boolean).join(" ") || "Usuario"}
-                    </p>
-                    <p className="text-base font-normal text-panel-muted">{currentProfile.email}</p>
-                  </div>
-                </div>
-                <div className="flex w-full max-w-[480px] gap-3 md:w-auto">
-                  <button 
-                    onClick={() => setIsProfileCollapsed(!isProfileCollapsed)}
-                    className="flex h-10 min-w-[84px] flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-panel-border bg-panel-bg px-4 text-sm font-bold text-panel-text transition hover:bg-panel-border/50 md:flex-auto"
-                  >
-                    <span className="truncate">{isProfileCollapsed ? "Ver Detalles" : "Ocultar"}</span>
-                  </button>
-                 
-                </div>
-              </div>
-              
-              {/* Expandable Details */}
-              {!isProfileCollapsed && (
-                <div className="mt-4 rounded-xl border border-panel-border bg-panel-card px-4 pb-1 pt-4 shadow-lg max-w-2xl m-auto">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-[20%_1fr_auto]">
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid border-b pb-2 border-panel-border  ">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Email</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">{currentProfile.email}</p>
-                      <div className="flex justify-start md:justify-end">
-                        <button
-                          onClick={profileEditHandlers.email}
-                          className="rounded-lg px-3 py-1 text-sm font-semibold text-panel-primary transition hover:bg-panel-primary/10"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid border-b border-panel-border pb-2 items-middle align-middle">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Contraseña</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">
-                        <span className="font-semibold tracking-[0.4em] text-panel-text/80">{PASSWORD_PLACEHOLDER}</span>
-                      </p>
-                      <div className="flex justify-start md:justify-end">
-                        <button
-                          onClick={profileEditHandlers.password}
-                          className="rounded-lg px-3 py-1 text-sm font-semibold text-panel-primary transition hover:bg-panel-primary/10"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid border-b border-panel-border pb-2 items-center">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Nombre</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">{currentProfile.first_name || "—"}</p>
-                      <div className="flex justify-start md:justify-end">
-                        <button
-                          onClick={profileEditHandlers.first_name}
-                          className="rounded-lg px-3 py-1 text-sm font-semibold text-panel-primary transition hover:bg-panel-primary/10"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid border-b border-panel-border pb-2 items-center">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Apellido</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">{currentProfile.last_name || "—"}</p>
-                      <div className="flex justify-start md:justify-end">
-                        <button
-                          onClick={profileEditHandlers.last_name}
-                          className="rounded-lg px-3 py-1 text-sm font-semibold text-panel-primary transition hover:bg-panel-primary/10"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid border-b border-panel-border pb-2 items-center">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Edad</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">{currentProfile.age ? `${currentProfile.age} años` : "—"}</p>
-                      <div className="flex justify-start md:justify-end">
-                        <button
-                          onClick={profileEditHandlers.age}
-                          className="rounded-lg px-3 py-1 text-sm font-semibold text-panel-primary transition hover:bg-panel-primary/10"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid border-b border-panel-border pb-2 items-center">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Altura</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">{currentProfile.height ? `${currentProfile.height} cm` : "—"}</p>
-                      <div className="flex justify-start md:justify-end">
-                        <span className="text-sm text-panel-muted italic">No editable</span>
-                      </div>
-                    </div>
-                    <div className="col-span-full md:col-span-3 grid grid-cols-subgrid  border-panel-border pb-2 items-center">
-                      <p className="text-sm font-normal text-panel-muted col-span-1">Peso</p>
-                      <p className="text-sm font-normal text-panel-text col-span-1">{currentProfile.weight ? `${currentProfile.weight} kg` : "—"}</p>
-                      <div className="flex justify-start md:justify-end">
-                        <button
-                          onClick={profileEditHandlers.weight}
-                          className="rounded-lg px-3 py-1 text-sm font-semibold text-panel-primary transition hover:bg-panel-primary/10"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            {/* Suscripción Card */}
-            <section className="p-4 max-w-3xl m-auto">
-              <div className="grid rounded-xl md:flex-row md:items-start shadow-lg bg-panel-card border border-panel-border">
-                <div className="flex w-full min-w-72 flex items-center justify-between gap-4 p-6">
-                  <p className="text-sm font-normal text-panel-muted">Tu Suscripción:</p>
-                  <p className="text-lg font-bold  text-panel-text">{formatUserType(currentProfile.user_type)}</p>
-                  <div className="flex items-center gap-2 justify-start">
-                    <span className="inline-flex items-center justify-start rounded-full bg-panel-primary/20 px-4 py-2 ">
-                      <p className="whitespace-nowrap text-sm text-panel-primary font-semibold">Activo</p>
-                    </span>
-                  </div>
-                </div>
-                  <div className="flex items-center gap-3 justify-between p-6">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-base font-normal text-panel-muted">Se unió: {formatDate(currentProfile.registration_date)}</p>
-                    </div>
-                    <button className="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-panel-primary px-4 text-sm font-medium text-panel-text-light hover:opacity-90">
-                      <span className="truncate">Cambiar Plan</span>
-                    </button>
-                  </div>
-              </div>
-            </section>
-          </>
-        )}
+        {/* Non-admin view removed as it is now handled by /cuenta page */}
 
         {isAdmin && (
           <section className="rounded-2xl border border-panel-border bg-panel-card p-6 shadow-lg">
@@ -908,7 +781,7 @@ export default function AdminPage() {
                   <p className="text-sm text-panel-muted">Descripción general de cada perfil en la plataforma</p>
                 </div>
               </div>
-              
+
               {/* Search Box */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -930,7 +803,7 @@ export default function AdminPage() {
                   </button>
                 )}
               </div>
-              
+
               {searchQuery && (
                 <p className="text-sm text-panel-muted">
                   Mostrando {filteredUsers.length} de {directoryUsers.length} usuarios

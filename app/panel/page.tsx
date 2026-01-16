@@ -9,6 +9,7 @@ import { PhaseTab } from "@/components/panel/PhaseTab";
 import { VideoCard } from "@/components/panel/VideoCard";
 import { VideoPlayer } from "@/components/panel/VideoPlayer";
 import { ScheduleSessionModal } from "@/components/panel/ScheduleSessionModal";
+import { getUserProfile } from "@/lib/firestore-helpers";
 import { db } from "@/lib/firebase";
 import { collection, query, where, orderBy, getDocs, Timestamp, addDoc, updateDoc, doc } from "firebase/firestore";
 import { Video as VideoType, UserVideoProgress, COLLECTIONS } from "@/lib/firestore-schema";
@@ -44,7 +45,7 @@ export default function PanelPage() {
     try {
       const videosRef = collection(db, COLLECTIONS.VIDEOS);
       console.log("📁 Collection reference:", COLLECTIONS.VIDEOS);
-      
+
       const q = query(
         videosRef,
         where("status", "==", "Publicado")
@@ -53,7 +54,7 @@ export default function PanelPage() {
       console.log("🔍 Executing query...");
       const snapshot = await getDocs(q);
       console.log("📊 Query results:", snapshot.size, "documents");
-      
+
       const loadedVideos: VideoType[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -150,7 +151,7 @@ export default function PanelPage() {
   // Fetch all upcoming scheduled sessions
   const fetchUpcomingSessions = useCallback(async () => {
     if (!user) return;
-    
+
     setLoadingSessions(true);
     try {
       const now = Timestamp.now();
@@ -206,11 +207,11 @@ export default function PanelPage() {
     const date = session.day.toDate();
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    
+
     const dayName = dayNames[date.getDay()];
     const day = date.getDate();
     const month = monthNames[date.getMonth()];
-    
+
     return `${dayName} ${day} ${month}, ${session.time}`;
   };
 
@@ -232,7 +233,7 @@ export default function PanelPage() {
 
   // Get unique phases from videos
   const phases = Object.keys(videosByPhase).map(Number).sort((a, b) => a - b);
-  
+
   // Get current phase videos
   const currentPhaseVideos = videosByPhase[selectedPhase] || [];
 
@@ -265,11 +266,10 @@ export default function PanelPage() {
     fetchUpcomingSessions();
   };
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/");
-    }
-  }, [user, loading, router]);
+  /* 
+   * Removed checkAccess useEffect that redirected base users to payment.
+   * Base users should have access to the panel or be handled by global guards.
+   */
 
   if (loading) {
     return (
@@ -327,7 +327,7 @@ export default function PanelPage() {
 
         {/* Quick Actions */}
         <div className="mb-8">
-        {/* <h2 className="mb-4 text-2xl font-bold text-panel-text">Diario</h2> */}
+          {/* <h2 className="mb-4 text-2xl font-bold text-panel-text">Diario</h2> */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <QuickActionButton
               icon="edit_note"
@@ -351,7 +351,7 @@ export default function PanelPage() {
         </div>
 
 
-    {/* Phase Tabs */}
+        {/* Phase Tabs */}
         <div className="mb-8">
           {/* <h2 className="mb-4 text-2xl font-bold text-panel-text">Fases del Programa</h2> */}
           <div className="grid grid-flow-row lg:grid-flow-col gap-2 rounded-3xl">

@@ -12,9 +12,11 @@ import {
   orderBy,
   Timestamp,
   serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { db, COLLECTIONS } from "./firestore";
-import type { User, UserWeight, UserObjective, UserType, ObjectiveStatus } from "./firestore-schema";
+import type { User, UserWeight, UserObjective, UserType, ObjectiveStatus, Course, CourseAccessLevel, CourseStatus } from "./firestore-schema";
 
 /**
  * User Management Functions
@@ -28,7 +30,7 @@ export async function createUserProfile(
   lastName: string
 ): Promise<void> {
   const userRef = doc(db, COLLECTIONS.USERS, userId);
-  
+
   const userData: Omit<User, "registration_date"> & { registration_date: ReturnType<typeof serverTimestamp> } = {
     user_id: userId,
     email,
@@ -46,6 +48,8 @@ export async function createUserProfile(
 export async function updateUserRegistrationDetails(
   userId: string,
   details: {
+    first_name?: string;
+    last_name?: string;
     age: number;
     height: number;
     weight: number;
@@ -128,7 +132,7 @@ export async function getAllUsers(): Promise<User[]> {
 // Add weight log
 export async function addWeightLog(userId: string, weight: number, date?: Date): Promise<string> {
   const weightsRef = collection(db, COLLECTIONS.USER_WEIGHTS);
-  
+
   const weightData: Omit<UserWeight, "id" | "date"> & { date: Timestamp } = {
     user_id: userId,
     weight,
@@ -196,7 +200,7 @@ export async function addObjective(
   status: ObjectiveStatus = "in_progress"
 ): Promise<string> {
   const objectivesRef = collection(db, COLLECTIONS.USER_OBJECTIVES);
-  
+
   const objectiveData: Omit<UserObjective, "id" | "date_added"> & { date_added: ReturnType<typeof serverTimestamp> } = {
     user_id: userId,
     objective,
@@ -211,7 +215,7 @@ export async function addObjective(
 // Get user's objectives
 export async function getUserObjectives(userId: string, statusFilter?: ObjectiveStatus): Promise<UserObjective[]> {
   const objectivesRef = collection(db, COLLECTIONS.USER_OBJECTIVES);
-  
+
   let q = query(
     objectivesRef,
     where("user_id", "==", userId),
@@ -260,4 +264,94 @@ export async function completeObjective(objectiveId: string): Promise<void> {
 export async function deleteObjective(objectiveId: string): Promise<void> {
   const objectiveRef = doc(db, COLLECTIONS.USER_OBJECTIVES, objectiveId);
   await deleteDoc(objectiveRef);
+}
+
+/**
+ * Course Management Functions
+ */
+
+// Create a new course
+export async function createCourse(
+  title: string,
+  accessLevel: CourseAccessLevel,
+  status: CourseStatus,
+  createdBy: string
+): Promise<string> {
+  const coursesRef = collection(db, COLLECTIONS.COURSES);
+
+  const courseData: Omit<Course, "id" | "created_at"> & { created_at: ReturnType<typeof serverTimestamp> } = {
+    title,
+    access_level: accessLevel,
+    status,
+    created_by: createdBy,
+    created_at: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(coursesRef, courseData);
+  return docRef.id;
+}
+
+// Get all courses
+export async function getAllCourses(): Promise<Course[]> {
+  const coursesRef = collection(db, COLLECTIONS.COURSES);
+  const q = query(coursesRef, orderBy("created_at", "desc"));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      id: docSnapshot.id,
+      title: data.title,
+      access_level: data.access_level,
+      status: data.status,
+      created_at: data.created_at?.toDate() || new Date(),
+      created_by: data.created_by,
+    } as Course;
+  });
+}
+
+// Update a course
+export async function updateCourse(
+  courseId: string,
+  updates: Partial<Pick<Course, "title" | "access_level" | "status">>
+): Promise<void> {
+  const courseRef = doc(db, COLLECTIONS.COURSES, courseId);
+  await updateDoc(courseRef, updates);
+}
+
+// Delete a course
+export async function deleteCourse(courseId: string): Promise<void> {
+  const courseRef = doc(db, COLLECTIONS.COURSES, courseId);
+  await deleteDoc(courseRef);
+}
+
+// Assign a restricted course to a user
+export async function assignCourseToUser(userId: string, courseId: string): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, {
+    course_access: arrayUnion(courseId),
+  });
+}
+
+// Remove a restricted course from a user
+export async function removeCourseFromUser(userId: string, courseId: string): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, {
+    course_access: arrayRemove(courseId),
+  });
+}
+
+// Get users with access to a specific course
+export async function getUsersWithCourseAccess(courseId: string): Promise<User[]> {
+  const usersRef = collection(db, COLLECTIONS.USERS);
+  const q = query(usersRef, where("course_access", "array-contains", courseId));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      ...data,
+      registration_date: data.registration_date?.toDate() || new Date(),
+    } as User;
+  });
 }

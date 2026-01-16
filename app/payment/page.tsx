@@ -18,17 +18,16 @@ interface PlanCardProps {
 
 function PlanCard({ name, price, userType, features, isPopular, onSelect, isProcessing }: PlanCardProps) {
   return (
-    <div className={`flex flex-col gap-6 rounded-xl p-6 ${
-      isPopular 
-        ? "relative border-2 border-panel-primary bg-panel-primary/5"
-        : "border border-panel-border bg-panel-card"
-    }`}>
+    <div className={`flex flex-col gap-6 rounded-xl p-6 ${isPopular
+      ? "relative border-2 border-panel-primary bg-panel-primary/5"
+      : "border border-panel-border bg-panel-card"
+      }`}>
       {isPopular && (
         <p className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-0 rounded-full bg-panel-primary px-4 py-1 text-center text-sm font-medium tracking-[0.015em] text-panel-text-light">
           Más Popular
         </p>
       )}
-      
+
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-bold text-panel-text">{name}</h2>
         <p className="flex items-baseline gap-1 text-panel-text">
@@ -79,8 +78,13 @@ export default function PaymentPage() {
     try {
       setProcessing(true);
 
-      // Redirect to payment2 page with selected plan
-      router.push(`/payment2?plan=${selectedUserType}`);
+      if (selectedUserType === "base") {
+        await updateUserType(user.uid, "base");
+        router.push("/register");
+      } else {
+        // Redirect to payment2 page with selected plan
+        router.push(`/payment2?plan=${selectedUserType}`);
+      }
     } catch (error) {
       console.error("Error selecting plan:", error);
       alert("Error al seleccionar el plan. Por favor intenta de nuevo.");
@@ -117,13 +121,13 @@ export default function PaymentPage() {
             {/* Base Plan */}
             <PlanCard
               name="Base"
-              price={500}
+              price={0}
               userType="base"
               features={[
                 "Acceso a talleres básicos y webinars gratuitos",
                 "Puedes comprar talleres individuales cuando quieras",
                 "Prueba gratuita 1 sesión del programa Kiconu",
-               
+
               ]}
               onSelect={handlePlanSelect}
               isProcessing={processing}
@@ -132,7 +136,7 @@ export default function PaymentPage() {
             {/* Kiconu Plan */}
             <PlanCard
               name="Kiconu"
-              price={700}
+              price={75}
               userType="kiconu"
               features={[
                 "Programa Kiconu de 9 meses",
@@ -149,7 +153,7 @@ export default function PaymentPage() {
             {/* Premium Plan */}
             <PlanCard
               name="Premium"
-              price={900}
+              price={95}
               userType="premium"
               features={[
                 "Todo lo incluido en plan Kiconu",

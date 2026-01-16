@@ -5,6 +5,7 @@ import { Footer } from "../components/layout/Footer";
 import { NavBar } from "../components/layout/NavBar";
 import { AuthProvider } from "../contexts/AuthContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -37,6 +38,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
+            <AuthGuard />
             <div className="flex min-h-screen flex-col">
               <NavBar />
               <main className="flex-1 bg-background">
