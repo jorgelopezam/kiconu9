@@ -1,9 +1,26 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllCourses, getUserProfile } from "@/lib/firestore-helpers";
 import type { Course, User } from "@/lib/firestore-schema";
+
+// Maps course titles to URL slugs for the detail pages
+const COURSE_SLUG_MAP: Record<string, string> = {
+    "Depuración de Cortisol": "cortisol",
+    "Depuracion de Cortisol": "cortisol",
+};
+
+const COURSE_IMAGE_MAP: Record<string, string> = {
+    "Depuración de Cortisol": "/cursos/cortisol/thumbnail.webp",
+    "Depuracion de Cortisol": "/cursos/cortisol/thumbnail.webp",
+};
+
+function getCourseSlug(title: string): string | null {
+    return COURSE_SLUG_MAP[title] || null;
+}
 
 export default function CursosPage() {
     const { user, loading: authLoading } = useAuth();
@@ -70,8 +87,20 @@ export default function CursosPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen relative">
+            {/* Background Image - Fixed to cover full screen despite layout constraints */}
+            <div className="fixed inset-0 z-0">
+                <Image
+                    src="/cursos/backgroundCursos.png"
+                    alt="Fondo Cursos"
+                    fill
+                    className="object-cover opacity-40"
+                    priority
+                />
+                <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
+            </div>
+
+            <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
                 <header className="mb-12 text-center">
                     <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
                         Mis Cursos & Contenido
@@ -96,20 +125,29 @@ export default function CursosPage() {
                                 key={course.id}
                                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-sage/20 bg-surface shadow-sm transition-all hover:shadow-md hover:-translate-y-1"
                             >
-                                <div className="aspect-video bg-desert-sand/10 flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-5xl text-primary/20 transition-transform group-hover:scale-110">
-                                        play_circle
-                                    </span>
+                                <div className="aspect-video bg-desert-sand/10 flex items-center justify-center relative overflow-hidden">
+                                    {COURSE_IMAGE_MAP[course.title] ? (
+                                        <Image
+                                            src={COURSE_IMAGE_MAP[course.title]}
+                                            alt={course.title}
+                                            fill
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                    ) : (
+                                        <span className="material-symbols-outlined text-5xl text-primary/20 transition-transform group-hover:scale-110">
+                                            play_circle
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex flex-1 flex-col p-6">
                                     <div className="flex items-center gap-2 mb-3">
                                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${course.access_level === "restricted"
-                                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                                                : course.access_level === "premium"
-                                                    ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
-                                                    : course.access_level === "kiconu"
-                                                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                                        : "bg-sage/20 text-foreground"
+                                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                            : course.access_level === "premium"
+                                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                                                : course.access_level === "kiconu"
+                                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                                    : "bg-sage/20 text-foreground"
                                             }`}>
                                             {course.access_level === "restricted" ? "Especial" : course.access_level.toUpperCase()}
                                         </span>
@@ -117,9 +155,21 @@ export default function CursosPage() {
                                     <h2 className="text-xl font-bold text-foreground mb-4">
                                         {course.title}
                                     </h2>
-                                    <button className="mt-auto w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/40">
-                                        Acceder al curso
-                                    </button>
+                                    {getCourseSlug(course.title) ? (
+                                        <Link
+                                            href={`/cursos/${getCourseSlug(course.title)}`}
+                                            className="mt-auto w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white text-center transition hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/40 block"
+                                        >
+                                            Acceder al curso
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            disabled
+                                            className="mt-auto w-full rounded-xl bg-sage/20 px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed"
+                                        >
+                                            Próximamente
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

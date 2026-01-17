@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserProfile } from "@/lib/firestore-helpers";
 import { AboutSection } from "../components/sections/AboutSection";
@@ -22,7 +23,7 @@ export default function Home() {
       setCheckingProfile(true);
       try {
         const profile = await getUserProfile(user.uid);
-        
+
         if (!profile) {
           // User authenticated but no profile - redirect to payment first
           router.push("/payment");
@@ -62,12 +63,27 @@ export default function Home() {
 
   // Show landing page for logged out users
   return (
-    <div className="space-y-20 py-12">
-      <HeroSection />
-      <AboutSection />
-      <HowItWorksSection />
-      <BenefitsSection />
-      <ContactSection />
+    <div className="relative min-h-screen">
+      {/* Fixed Background Image */}
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/branding/landingBackground2.webp"
+          alt="Fondo Kiconu"
+          fill
+          className="object-cover opacity-30 dark:opacity-20"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/90" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 space-y-16 py-12 md:space-y-24">
+        <HeroSection />
+        <AboutSection />
+        <HowItWorksSection />
+        <BenefitsSection />
+        <ContactSection />
+      </div>
     </div>
   );
 }
