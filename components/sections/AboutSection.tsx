@@ -1,24 +1,26 @@
+import Image from "next/image";
+
 const highlights = [
   {
-    icon: "spa",
+    image: "/landing/fusionHolistica.webp",
     title: "Fusión Holística",
     description:
       "Combinamos nutrición personalizada y coaching transpersonal para abordar tu ser en todas sus dimensiones: física, mental y emocional.",
   },
   {
-    icon: "sentiment_very_satisfied",
+    image: "/landing/filosofiaKintsugi.webp",
     title: "Filosofía Kintsugi",
     description:
       "Celebramos tus cicatrices. Tu historia no es algo a ocultar, sino la hoja de ruta hacia tu resiliencia y libertad.",
   },
   {
-    icon: "self_improvement",
+    image: "/landing/conexionCuerpoMente.webp",
     title: "Conexión Cuerpo-Mente",
     description:
       "A través de técnicas somáticas y respiratorias aprenderás a escuchar la sabiduría de tu cuerpo y cultivar paz interior.",
   },
   {
-    icon: "calendar_month",
+    image: "/landing/cambioSostenible.webp",
     title: "Cambio Sostenible",
     description:
       "Siete meses para integrar nuevos hábitos de forma sólida y garantizar que tu transformación sea para siempre.",
@@ -44,13 +46,24 @@ export function AboutSection() {
         {highlights.map((item) => (
           <article
             key={item.title}
-            className="flex flex-col items-center gap-4 rounded-2xl border border-border px-8 py-10 text-center transition hover:border-primary/40 hover:shadow-lg"
+            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-background/50 shadow-md transition-all hover:border-primary/40 hover:shadow-xl hover:-translate-y-1"
           >
-            <span className="material-symbols-outlined flex size-14 items-center justify-center rounded-full bg-primary/15 text-3xl text-primary">
-              {item.icon}
-            </span>
-            <h3 className="font-display text-2xl font-semibold text-primary">{item.title}</h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+            {/* Image */}
+            <div className="relative h-48 w-full overflow-hidden bg-sage/5">
+              <Image
+                src={item.image}
+                alt={item.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col gap-3 px-8 py-6 text-center">
+              <h3 className="font-display text-2xl font-semibold text-primary">{item.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+            </div>
           </article>
         ))}
       </div>

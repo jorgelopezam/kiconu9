@@ -31,6 +31,9 @@ type AuthContextType = {
   isLoginModalOpen: boolean;
   openLoginModal: () => void;
   closeLoginModal: () => void;
+  isRegisterModalOpen: boolean;
+  openRegisterModal: () => void;
+  closeRegisterModal: () => void;
   refreshProfile: () => Promise<void>;
 };
 
@@ -41,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<FirestoreUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -110,6 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
+  const openRegisterModal = () => setIsRegisterModalOpen(true);
+  const closeRegisterModal = () => setIsRegisterModalOpen(false);
 
   return (
     <AuthContext.Provider
@@ -124,6 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoginModalOpen,
         openLoginModal,
         closeLoginModal,
+        isRegisterModalOpen,
+        openRegisterModal,
+        closeRegisterModal,
         refreshProfile,
       }}
     >

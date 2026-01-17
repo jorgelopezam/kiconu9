@@ -85,7 +85,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 py-4 sm:px-6">
         <div className="rounded-xl border border-panel-border bg-panel-card p-8 shadow-lg">
           <h1 className="mb-2 text-3xl font-bold text-panel-text">
             Completa Tu Perfil
@@ -129,66 +129,68 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Age */}
-            <div>
-              <label htmlFor="age" className="mb-2 block text-sm font-medium text-panel-text">
-                Edad
-              </label>
-              <input
-                type="number"
-                id="age"
-                min="13"
-                max="120"
-                required
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
-                placeholder="Ingresa tu edad"
-              />
-            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {/* Age */}
+              <div>
+                <label htmlFor="age" className="mb-2 block text-sm font-medium text-panel-text">
+                  Edad
+                </label>
+                <input
+                  type="number"
+                  id="age"
+                  min="13"
+                  max="120"
+                  required
+                  value={formData.age}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
+                  placeholder="Ingresa tu edad"
+                />
+              </div>
 
-            {/* Height */}
-            <div>
-              <label htmlFor="height" className="mb-2 block text-sm font-medium text-panel-text">
-                Altura (cm)
-              </label>
-              <input
-                type="number"
-                id="height"
-                min="50"
-                max="300"
-                step="0.1"
-                required
-                value={formData.height}
-                onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
-                placeholder="Ingresa tu altura en centímetros"
-              />
-            </div>
+              {/* Height */}
+              <div>
+                <label htmlFor="height" className="mb-2 block text-sm font-medium text-panel-text">
+                  Altura (cm)
+                </label>
+                <input
+                  type="number"
+                  id="height"
+                  min="50"
+                  max="300"
+                  step="0.1"
+                  required
+                  value={formData.height}
+                  onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                  className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
+                  placeholder="Ingresa tu altura en centímetros"
+                />
+              </div>
 
-            {/* Weight */}
-            <div>
-              <label htmlFor="weight" className="mb-2 block text-sm font-medium text-panel-text">
-                Peso (kg)
-              </label>
-              <input
-                type="number"
-                id="weight"
-                min="20"
-                max="500"
-                step="0.1"
-                required
-                value={formData.weight}
-                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
-                placeholder="Ingresa tu peso en kilogramos"
-              />
+              {/* Weight */}
+              <div>
+                <label htmlFor="weight" className="mb-2 block text-sm font-medium text-panel-text">
+                  Peso (kg)
+                </label>
+                <input
+                  type="number"
+                  id="weight"
+                  min="20"
+                  max="500"
+                  step="0.1"
+                  required
+                  value={formData.weight}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text focus:border-panel-primary focus:outline-none focus:ring-2 focus:ring-panel-primary/20"
+                  placeholder="Ingresa tu peso en kilogramos"
+                />
+              </div>
             </div>
 
             {/* Gender */}
             <div>
               <label htmlFor="gender" className="mb-2 block text-sm font-medium text-panel-text">
-                Género
+                Género (Este dato ayuda a los diagnósticos ya que algunos requerimientos de nutrición son diferentes para hombres y mujeres)
               </label>
               <select
                 id="gender"
@@ -212,7 +214,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-xl bg-panel-primary px-6 py-4 text-base font-bold text-panel-text transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="w-full rounded-xl bg-panel-primary px-6 py-4 text-base font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {submitting ? "Guardando..." : "Completar Registro"}
             </button>

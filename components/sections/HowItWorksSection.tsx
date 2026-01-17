@@ -39,7 +39,7 @@ export function HowItWorksSection() {
     <section id="fases" className="rounded-[2.5rem] bg-surface/90 px-6 py-24 shadow-xl md:px-16 md:py-28">
       <div className="mx-auto max-w-3xl text-center">
         <span className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
-          Las Fases
+          Estructura del Programa
         </span>
         <h2 className="mt-4 font-display text-4xl font-bold text-foreground md:text-5xl">
           Las fases de tu evolución
@@ -47,10 +47,10 @@ export function HowItWorksSection() {
       </div>
 
       <div className="relative mt-16 grid gap-10 md:grid-cols-3">
-        <div className="pointer-events-none absolute left-4 right-4 top-1/2 hidden h-px -translate-y-1/2 bg-border/50 md:block" aria-hidden />
+        <div className="pointer-events-none absolute left-4 right-4 top-1/2 hidden -translate-y-1/2 bg-border/50 md:block" aria-hidden />
         {phases.map((phase, index) => (
           <article key={phase.label} className="relative flex flex-col rounded-3xl border border-border bg-background/30 px-8 py-10 text-left shadow-sm transition hover:shadow-lg">
-            <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-primary text-sm font-semibold uppercase tracking-[0.4em] text-white">
+            <div className="mb-4 grid place-items-center size-14  rounded-full bg-primary text-3xl font-semibold uppercase text-white ">
               {index + 1}
             </div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">

@@ -120,6 +120,8 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Por favor, completa este campo')}
+                onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                 placeholder="Juan"
                 className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
                 required
@@ -136,6 +138,8 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Por favor, completa este campo')}
+                onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                 placeholder="Pérez"
                 className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
                 required
@@ -153,6 +157,15 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onInvalid={(e) => {
+                const input = e.target as HTMLInputElement;
+                if (input.validity.valueMissing) {
+                  input.setCustomValidity('Por favor, completa este campo');
+                } else if (input.validity.typeMismatch) {
+                  input.setCustomValidity('Por favor, introduce una dirección de correo electrónico válida');
+                }
+              }}
+              onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
               placeholder="tu@ejemplo.com"
               className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
               required
@@ -169,6 +182,8 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Por favor, completa este campo')}
+              onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
               placeholder="••••••••"
               className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
               required
@@ -185,6 +200,8 @@ export function RegisterModal({ isOpen, onClose }: RegisterModalProps) {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Por favor, completa este campo')}
+              onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
               placeholder="••••••••"
               className="mt-2 w-full rounded-xl border border-sage/40 bg-desert-sand/30 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
               required

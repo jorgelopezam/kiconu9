@@ -37,12 +37,11 @@ export function NavBar() {
       router.push("/panel");
     }
   };
-  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userTypeDropdownOpen, setUserTypeDropdownOpen] = useState(false);
   const [viewAsType, setViewAsType] = useState<UserType>("admin");
   const [userType, setUserType] = useState<string | null>(null);
-  const { user, userProfile, logout, isLoginModalOpen, openLoginModal, closeLoginModal } = useAuth();
+  const { user, userProfile, logout, isLoginModalOpen, openLoginModal, closeLoginModal, isRegisterModalOpen, openRegisterModal, closeRegisterModal } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -155,7 +154,7 @@ export function NavBar() {
                 <span className="hidden sm:inline">Entrar</span>
               </button>
               <button
-                onClick={() => setRegisterModalOpen(true)}
+                onClick={openRegisterModal}
                 className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold tracking-wide text-white transition-colors duration-200 hover:bg-primary-600"
               >
                 Registrarse
@@ -375,7 +374,7 @@ export function NavBar() {
                 Iniciar Sesión
               </button>
               <button
-                onClick={() => setRegisterModalOpen(true)}
+                onClick={openRegisterModal}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
               >
                 Registrarse
@@ -390,10 +389,10 @@ export function NavBar() {
         onClose={closeLoginModal}
         onShowRegister={() => {
           closeLoginModal();
-          setRegisterModalOpen(true);
+          openRegisterModal();
         }}
       />
-      <RegisterModal isOpen={registerModalOpen} onClose={() => setRegisterModalOpen(false)} />
+      <RegisterModal isOpen={isRegisterModalOpen} onClose={closeRegisterModal} />
 
       {menuOpen && (
         <div className="border-t border-sage/30 bg-surface px-6 pb-6 md:hidden">

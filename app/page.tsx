@@ -34,8 +34,13 @@ export default function Home() {
           // Plan selected but missing registration details
           router.push("/register");
         } else {
-          // All good, go to panel
-          router.push("/panel");
+          // Redirect based on user type
+          if (profile.user_type === "base") {
+            router.push("/cursos");
+          } else {
+            // kiconu and premium users go to panel
+            router.push("/panel");
+          }
         }
       } catch (error) {
         console.error("Error checking profile:", error);

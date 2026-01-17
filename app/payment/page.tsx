@@ -49,7 +49,7 @@ function PlanCard({ name, price, userType, features, isPopular, onSelect, isProc
         <button
           onClick={() => onSelect(userType)}
           disabled={isProcessing}
-          className="flex h-12 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-panel-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-panel-text transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-12 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-panel-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-panel-text dark:text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span className="truncate">
             {isProcessing ? "Procesando..." : "Seleccionar Plan"}
