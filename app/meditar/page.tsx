@@ -12,6 +12,11 @@ interface MeditationTrack {
 
 const meditationTracks: MeditationTrack[] = [
   {
+    id: "5",
+    title: "Meditación Transpersonal 1",
+    filename: "meditacionTP1.mp3",
+  },
+  {
     id: "1",
     title: "Tuning in to New Potentials Meditation",
     filename: "Joe Dispenza - Tuning in to New Potentials Meditation_.mp3",
@@ -30,11 +35,6 @@ const meditationTracks: MeditationTrack[] = [
     id: "4",
     title: "Pineal Gland Meditation",
     filename: "Pineal Gland Meditation  DR. Joe Dispenza.mp3",
-  },
-  {
-    id: "5",
-    title: "Meditación Transpersonal 1",
-    filename: "meditacionTP1.mp3",
   },
 ];
 
@@ -62,13 +62,13 @@ export default function MeditarPage() {
         setCurrentTime(audio.currentTime);
       }
     };
-    
+
     const updateDuration = () => {
       if (audio && !isNaN(audio.duration)) {
         setDuration(audio.duration);
       }
     };
-    
+
     const handleEnded = () => setIsPlaying(false);
 
     audio.addEventListener("timeupdate", updateTime);
@@ -87,7 +87,7 @@ export default function MeditarPage() {
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
-    
+
     if (audioRef.current) {
       // Files are now in public/meditations folder
       audioRef.current.src = `/meditations/${encodeURIComponent(track.filename)}`;
@@ -155,11 +155,10 @@ export default function MeditarPage() {
                 <button
                   key={track.id}
                   onClick={() => handleTrackSelect(track)}
-                  className={`w-full rounded-lg border p-4 text-left transition-all ${
-                    selectedTrack?.id === track.id
+                  className={`w-full rounded-lg border p-4 text-left transition-all ${selectedTrack?.id === track.id
                       ? "border-panel-primary bg-panel-primary/10 text-panel-primary"
                       : "border-panel-border bg-panel-card text-panel-text hover:border-panel-primary"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-2xl">
