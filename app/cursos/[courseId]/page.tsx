@@ -216,15 +216,9 @@ export default function CourseDetailPage() {
                             {/* Stage header - clickable */}
                             <button
                                 onClick={() => toggleStage(stageIndex)}
-                                className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-sage/5 transition"
+                                className="w-full flex items-center justify-between p-4 sm:p-5 text-left bg-desert-sand/20 dark:bg-sage/15 hover:bg-desert-sand/30 dark:hover:bg-sage/20 transition"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${stageIndex === 0
-                                        ? "bg-primary/10 text-primary"
-                                        : "bg-sage/20 text-foreground"
-                                        }`}>
-                                        {stageIndex === 0 ? "★" : stageIndex}
-                                    </div>
+                                <div>
                                     <h2 className="text-lg font-semibold text-foreground">
                                         {stage.title}
                                     </h2>
@@ -237,7 +231,7 @@ export default function CourseDetailPage() {
 
                             {/* Stage content */}
                             {expandedStages.has(stageIndex) && (
-                                <div className="border-t border-sage/10">
+                                <div className="border-t border-sage/10 pl-4 sm:pl-6">
                                     <ul className="divide-y divide-sage/10">
                                         {stage.content.map((item, contentIndex) => (
                                             <li key={contentIndex}>
@@ -247,20 +241,20 @@ export default function CourseDetailPage() {
                                                         href={item.file}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-4 p-4 sm:px-5 hover:bg-sage/5 transition group"
+                                                        className="flex items-center gap-4 p-4 sm:px-5 hover:bg-sage/5 transition group cursor-pointer"
                                                     >
                                                         <span className={`material-symbols-outlined text-2xl ${getContentColor(item.type)}`}>
                                                             {getContentIcon(item.type)}
                                                         </span>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-foreground font-medium group-hover:text-primary transition truncate">
+                                                            <p className="text-foreground font-medium truncate">
                                                                 {item.title}
                                                             </p>
                                                             <p className="text-sm text-muted-foreground">
                                                                 Documento PDF
                                                             </p>
                                                         </div>
-                                                        <span className="material-symbols-outlined text-muted-foreground group-hover:text-primary transition">
+                                                        <span className="material-symbols-outlined text-muted-foreground transition">
                                                             download
                                                         </span>
                                                     </a>
@@ -272,20 +266,20 @@ export default function CourseDetailPage() {
                                                             file: item.file,
                                                             title: item.title
                                                         })}
-                                                        className="w-full flex items-center gap-4 p-4 sm:px-5 hover:bg-sage/5 transition group text-left"
+                                                        className="w-full flex items-center gap-4 p-4 sm:px-5 hover:bg-sage/5 transition group text-left cursor-pointer"
                                                     >
                                                         <span className={`material-symbols-outlined text-2xl ${getContentColor(item.type)}`}>
                                                             {getContentIcon(item.type)}
                                                         </span>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-foreground font-medium group-hover:text-primary transition truncate">
+                                                            <p className="text-foreground font-medium truncate">
                                                                 {item.title}
                                                             </p>
                                                             <p className="text-sm text-muted-foreground">
                                                                 {item.type === "audio" ? "Audio" : "Video"}
                                                             </p>
                                                         </div>
-                                                        <span className="material-symbols-outlined text-muted-foreground group-hover:text-primary transition">
+                                                        <span className="material-symbols-outlined text-muted-foreground transition">
                                                             {playingMedia?.file === item.file ? "pause_circle" : "play_circle"}
                                                         </span>
                                                     </button>

@@ -203,6 +203,24 @@ export default function PanelPage() {
     }
   }, [fetchUpcomingSessions, fetchVideoProgress, fetchVideos, user]);
 
+  // Redirect base users to cursos page (panel is only for kiconu/premium users)
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user || loading) return;
+
+      try {
+        const profile = await getUserProfile(user.uid);
+        if (profile && profile.user_type === "base") {
+          router.push("/cursos");
+        }
+      } catch (error) {
+        console.error("Error checking user access:", error);
+      }
+    };
+
+    checkAccess();
+  }, [user, loading, router]);
+
   const formatSessionTime = (session: Session) => {
     const date = session.day.toDate();
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
