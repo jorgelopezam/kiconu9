@@ -450,7 +450,7 @@ function AdminCursosContenidoContent() {
     const getAcceptedFiles = (type: CourseItemType) => {
         switch (type) {
             case "image": return "image/*";
-            case "audio": return "audio/*";
+            case "audio": return "audio/*,.mp3,.m4a,.wav,.aac";
             case "video": return "video/*";
             case "document": return ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx";
         }
