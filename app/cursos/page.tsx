@@ -101,6 +101,32 @@ export default function CursosPage() {
             </div>
 
             <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                {/* Profile Completion Banner */}
+                {profile && (!profile.age || !profile.height || !profile.weight || !profile.gender) && (
+                    <div className="mb-8 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="flex items-start gap-3 flex-1">
+                                <span className="material-symbols-outlined text-2xl text-amber-600 dark:text-amber-400 flex-shrink-0">info</span>
+                                <div>
+                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                                        Completa tus datos para mejorar tu experiencia Kiconu
+                                    </p>
+                                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                                        Algunos datos de tu perfil están incompletos. Completar tu información nos permite personalizar mejor tu experiencia.
+                                    </p>
+                                </div>
+                            </div>
+                            <Link
+                                href="/cuenta"
+                                className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700 whitespace-nowrap"
+                            >
+                                Completar perfil
+                                <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
                 <header className="mb-12 text-center">
                     <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
                         Mis Cursos & Contenido

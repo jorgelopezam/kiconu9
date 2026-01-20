@@ -38,7 +38,7 @@ export async function createUserProfile(
     last_name: lastName,
     registration_date: serverTimestamp(),
     is_admin: false,
-    user_type: null,  // User needs to select a plan
+    user_type: "base",  // New users start with base plan
   };
 
   await setDoc(userRef, userData);
