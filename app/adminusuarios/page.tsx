@@ -187,6 +187,8 @@ function formatUserType(userType: FirestoreUser["user_type"]): string {
       return "Premium";
     case "admin":
       return "Admin";
+    case "inactive":
+      return "Inactivo";
     default:
       return userType;
   }
@@ -369,6 +371,9 @@ export default function AdminPage() {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Show inactive users toggle
+  const [showInactive, setShowInactive] = useState(false);
 
   // Edit modal state
   const [editModal, setEditModal] = useState<{
@@ -562,19 +567,28 @@ export default function AdminPage() {
     };
   }, [handleEditField, currentProfile]);
 
-  // Filter users based on search query
+  // Filter users based on search query and inactive toggle
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return directoryUsers;
+    let users = directoryUsers;
 
-    const query = searchQuery.toLowerCase();
-    return directoryUsers.filter((user) => {
-      const firstName = user.first_name?.toLowerCase() || "";
-      const lastName = user.last_name?.toLowerCase() || "";
-      const email = user.email?.toLowerCase() || "";
+    // Filter out inactive users unless toggle is on
+    if (!showInactive) {
+      users = users.filter((user) => user.user_type !== "inactive");
+    }
 
-      return firstName.includes(query) || lastName.includes(query) || email.includes(query);
-    });
-  }, [directoryUsers, searchQuery]);
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      users = users.filter((user) => {
+        const firstName = user.first_name?.toLowerCase() || "";
+        const lastName = user.last_name?.toLowerCase() || "";
+        const email = user.email?.toLowerCase() || "";
+        return firstName.includes(query) || lastName.includes(query) || email.includes(query);
+      });
+    }
+
+    return users;
+  }, [directoryUsers, searchQuery, showInactive]);
 
   useEffect(() => {
     if (loading) {
@@ -783,8 +797,8 @@ export default function AdminPage() {
               </div>
 
               {/* Search Box */}
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative flex-1 min-w-[200px]">
                   <input
                     type="text"
                     value={searchQuery}
@@ -802,6 +816,15 @@ export default function AdminPage() {
                     Limpiar
                   </button>
                 )}
+                <button
+                  onClick={() => setShowInactive(!showInactive)}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${showInactive
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                      : "border border-panel-border text-panel-muted hover:bg-panel-bg"
+                    }`}
+                >
+                  {showInactive ? "Ocultar Inactivos" : "Mostrar Inactivos"}
+                </button>
               </div>
 
               {searchQuery && (
@@ -848,6 +871,7 @@ export default function AdminPage() {
                             <option value="kiconu">Kiconu</option>
                             <option value="premium">Premium</option>
                             <option value="admin">Admin</option>
+                            <option value="inactive">Inactivo</option>
                           </select>
                         </td>
                         <td className="px-4 py-4 text-right">

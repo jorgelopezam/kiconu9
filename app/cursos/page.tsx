@@ -181,21 +181,12 @@ export default function CursosPage() {
                                     <h2 className="text-xl font-bold text-foreground mb-4">
                                         {course.title}
                                     </h2>
-                                    {getCourseSlug(course.title) ? (
-                                        <Link
-                                            href={`/cursos/${getCourseSlug(course.title)}`}
-                                            className="mt-auto w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white text-center transition hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/40 block"
-                                        >
-                                            Acceder al curso
-                                        </Link>
-                                    ) : (
-                                        <button
-                                            disabled
-                                            className="mt-auto w-full rounded-xl bg-sage/20 px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed"
-                                        >
-                                            Próximamente
-                                        </button>
-                                    )}
+                                    <Link
+                                        href={`/cursos/${course.id}`}
+                                        className="mt-auto w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white text-center transition hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/40 block"
+                                    >
+                                        Acceder al curso
+                                    </Link>
                                 </div>
                             </div>
                         ))}

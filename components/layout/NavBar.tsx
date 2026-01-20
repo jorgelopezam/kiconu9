@@ -326,6 +326,14 @@ export function NavBar() {
                             Admin Cursos
                           </Link>
                           <Link
+                            href="/adminmeditaciones"
+                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            <span className="material-symbols-outlined text-lg">self_improvement</span>
+                            Admin Meditaciones
+                          </Link>
+                          <Link
                             href="/marketing"
                             className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
                             onClick={() => setDropdownOpen(false)}
@@ -483,6 +491,14 @@ export function NavBar() {
                         >
                           <span className="material-symbols-outlined text-lg">school</span>
                           Admin Cursos
+                        </Link>
+                        <Link
+                          href="/adminmeditaciones"
+                          className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                          onClick={closeMenu}
+                        >
+                          <span className="material-symbols-outlined text-lg">self_improvement</span>
+                          Admin Meditaciones
                         </Link>
                         <Link
                           href="/marketing"

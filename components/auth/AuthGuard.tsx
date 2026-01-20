@@ -50,5 +50,22 @@ export function AuthGuard() {
         }
     }, [user, userProfile, loading, pathname, router, openLoginModal]);
 
+    // Block inactive users with a message
+    if (!loading && user && userProfile?.user_type === "inactive") {
+        return (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4">
+                <div className="max-w-md rounded-2xl border border-panel-border bg-panel-card p-8 text-center shadow-xl">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+                        <span className="material-symbols-outlined text-3xl text-red-500">block</span>
+                    </div>
+                    <h2 className="mb-2 text-xl font-bold text-panel-text">Usuario Inactivo</h2>
+                    <p className="text-panel-muted">
+                        Usuario inactivo. Comunicarse a soporte para cualquier aclaración.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return null;
 }

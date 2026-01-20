@@ -458,7 +458,16 @@ export default function AdminCursosPage() {
                                 Eliminar Curso
                             </button>
 
-                            <div className="flex gap-3">
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    onClick={() => {
+                                        router.push(`/admincursoscontenido?courseId=${selectedCourse.id}`);
+                                    }}
+                                    className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20"
+                                >
+                                    <span className="material-symbols-outlined text-lg">menu_book</span>
+                                    Contenido del Curso
+                                </button>
                                 <button
                                     onClick={() => {
                                         setShowEditModal(false);

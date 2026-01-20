@@ -278,5 +278,55 @@ service cloud.firestore {
       // - User is admin
       allow delete: if isAdmin();
     }
+
+    // Course sections collection
+    match /course_sections/{sectionId} {
+      // Allow read if:
+      // - User is authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow create if:
+      // - User is admin
+      allow create: if isAdmin() &&
+                       request.resource.data.course_id is string &&
+                       request.resource.data.title is string &&
+                       request.resource.data.order is number;
+      
+      // Allow update if:
+      // - User is admin
+      allow update: if isAdmin();
+      
+      // Allow delete if:
+      // - User is admin
+      allow delete: if isAdmin();
+    }
+
+    // Course items collection
+    match /course_items/{itemId} {
+      // Allow read if:
+      // - User is authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow create if:
+      // - User is admin
+      allow create: if isAdmin();
+      
+      // Allow update if:
+      // - User is admin
+      allow update: if isAdmin();
+      
+      // Allow delete if:
+      // - User is admin
+      allow delete: if isAdmin();
+    }
+    
+    // Meditations collection
+    match /meditations/{meditationId} {
+      // Allow read if authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow write if admin
+      allow create, update, delete: if isAdmin();
+    }
   }
 }

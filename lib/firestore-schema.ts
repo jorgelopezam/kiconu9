@@ -7,7 +7,7 @@
  * - user_objectives: User goals and objectives tracking
  */
 
-export type UserType = "base" | "kiconu" | "premium" | "admin" | null;
+export type UserType = "base" | "kiconu" | "premium" | "admin" | "inactive" | null;
 
 export type ObjectiveStatus = "in_progress" | "completed";
 
@@ -95,6 +95,39 @@ export interface Course {
   created_by: string; // user_id of admin who created
 }
 
+// Course content types
+export type CourseItemType = "image" | "audio" | "video" | "document";
+
+export interface CourseSection {
+  id: string;
+  course_id: string;
+  title: string;
+  order: number;
+  created_at: Date;
+}
+
+export interface CourseItem {
+  id: string;
+  section_id: string;
+  course_id: string;
+  title: string;
+  type: CourseItemType;
+  file_url: string;           // Firebase Storage URL for image/audio/document
+  mux_playback_id?: string;   // For videos
+  mux_asset_id?: string;      // For videos
+  order: number;
+  created_at: Date;
+}
+
+export interface Meditation {
+  id: string;
+  title: string;
+  file_url: string;
+  duration?: number; // Duration in seconds
+  created_at: Date;
+  created_by: string; // admin user id
+}
+
 /**
  * Collection paths
  */
@@ -106,4 +139,7 @@ export const COLLECTIONS = {
   USER_VIDEO_PROGRESS: "user_video_progress",
   JOURNAL: "journal",
   COURSES: "courses",
+  COURSE_SECTIONS: "course_sections",
+  COURSE_ITEMS: "course_items",
+  MEDITATIONS: "meditations",
 } as const;

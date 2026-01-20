@@ -14,9 +14,10 @@ import {
   serverTimestamp,
   arrayUnion,
   arrayRemove,
+  writeBatch,
 } from "firebase/firestore";
 import { db, COLLECTIONS } from "./firestore";
-import type { User, UserWeight, UserObjective, UserType, ObjectiveStatus, Course, CourseAccessLevel, CourseStatus } from "./firestore-schema";
+import type { User, UserWeight, UserObjective, UserType, ObjectiveStatus, Course, CourseAccessLevel, CourseStatus, CourseSection, CourseItem, CourseItemType, Meditation } from "./firestore-schema";
 
 /**
  * User Management Functions
@@ -355,3 +356,246 @@ export async function getUsersWithCourseAccess(courseId: string): Promise<User[]
     } as User;
   });
 }
+
+/**
+ * Course Section Management Functions
+ */
+
+// Create a course section
+export async function createCourseSection(
+  courseId: string,
+  title: string,
+  order: number
+): Promise<string> {
+  const sectionsRef = collection(db, COLLECTIONS.COURSE_SECTIONS);
+
+  const sectionData: Omit<CourseSection, "id" | "created_at"> & { created_at: ReturnType<typeof serverTimestamp> } = {
+    course_id: courseId,
+    title,
+    order,
+    created_at: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(sectionsRef, sectionData);
+  return docRef.id;
+}
+
+// Get all sections for a course
+export async function getCourseSections(courseId: string): Promise<CourseSection[]> {
+  const sectionsRef = collection(db, COLLECTIONS.COURSE_SECTIONS);
+  const q = query(
+    sectionsRef,
+    where("course_id", "==", courseId),
+    orderBy("order", "asc")
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      id: docSnapshot.id,
+      course_id: data.course_id,
+      title: data.title,
+      order: data.order,
+      created_at: data.created_at?.toDate() || new Date(),
+    } as CourseSection;
+  });
+}
+
+// Update a course section
+export async function updateCourseSection(
+  sectionId: string,
+  updates: Partial<Pick<CourseSection, "title" | "order">>
+): Promise<void> {
+  const sectionRef = doc(db, COLLECTIONS.COURSE_SECTIONS, sectionId);
+  await updateDoc(sectionRef, updates);
+}
+
+// Delete a course section and all its items
+export async function deleteCourseSection(sectionId: string): Promise<void> {
+  // First delete all items in this section
+  const itemsRef = collection(db, COLLECTIONS.COURSE_ITEMS);
+  const q = query(itemsRef, where("section_id", "==", sectionId));
+  const itemsSnapshot = await getDocs(q);
+
+  const batch = writeBatch(db);
+  itemsSnapshot.docs.forEach((docSnapshot) => {
+    batch.delete(docSnapshot.ref);
+  });
+
+  // Delete the section
+  const sectionRef = doc(db, COLLECTIONS.COURSE_SECTIONS, sectionId);
+  batch.delete(sectionRef);
+
+  await batch.commit();
+}
+
+// Reorder course sections
+export async function reorderCourseSections(
+  courseId: string,
+  orderedIds: string[]
+): Promise<void> {
+  const batch = writeBatch(db);
+
+  orderedIds.forEach((id, index) => {
+    const sectionRef = doc(db, COLLECTIONS.COURSE_SECTIONS, id);
+    batch.update(sectionRef, { order: index });
+  });
+
+  await batch.commit();
+}
+
+/**
+ * Course Item Management Functions
+ */
+
+// Create a course item
+export async function createCourseItem(
+  sectionId: string,
+  courseId: string,
+  title: string,
+  type: CourseItemType,
+  fileUrl: string,
+  muxData?: { playbackId: string; assetId: string }
+): Promise<string> {
+  // Get current max order for items in this section
+  const itemsRef = collection(db, COLLECTIONS.COURSE_ITEMS);
+  const q = query(itemsRef, where("section_id", "==", sectionId));
+  const existingItems = await getDocs(q);
+  const maxOrder = existingItems.docs.length > 0
+    ? Math.max(...existingItems.docs.map(d => d.data().order || 0))
+    : -1;
+
+  // Build item data, only including mux fields if they exist
+  const itemData: Record<string, unknown> = {
+    section_id: sectionId,
+    course_id: courseId,
+    title,
+    type,
+    file_url: fileUrl,
+    order: maxOrder + 1,
+    created_at: serverTimestamp(),
+  };
+
+  // Only add mux fields for video type
+  if (muxData) {
+    itemData.mux_playback_id = muxData.playbackId;
+    itemData.mux_asset_id = muxData.assetId;
+  }
+
+  const docRef = await addDoc(itemsRef, itemData);
+  return docRef.id;
+}
+
+// Get all items for a section
+export async function getCourseItems(sectionId: string): Promise<CourseItem[]> {
+  const itemsRef = collection(db, COLLECTIONS.COURSE_ITEMS);
+  const q = query(
+    itemsRef,
+    where("section_id", "==", sectionId),
+    orderBy("order", "asc")
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      id: docSnapshot.id,
+      section_id: data.section_id,
+      course_id: data.course_id,
+      title: data.title,
+      type: data.type,
+      file_url: data.file_url,
+      mux_playback_id: data.mux_playback_id,
+      mux_asset_id: data.mux_asset_id,
+      order: data.order,
+      created_at: data.created_at?.toDate() || new Date(),
+    } as CourseItem;
+  });
+}
+
+// Get all items for a course
+export async function getAllCourseItems(courseId: string): Promise<CourseItem[]> {
+  const itemsRef = collection(db, COLLECTIONS.COURSE_ITEMS);
+  const q = query(
+    itemsRef,
+    where("course_id", "==", courseId),
+    orderBy("order", "asc")
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      id: docSnapshot.id,
+      section_id: data.section_id,
+      course_id: data.course_id,
+      title: data.title,
+      type: data.type,
+      file_url: data.file_url,
+      mux_playback_id: data.mux_playback_id,
+      mux_asset_id: data.mux_asset_id,
+      order: data.order,
+      created_at: data.created_at?.toDate() || new Date(),
+    } as CourseItem;
+  });
+}
+
+// Update a course item
+export async function updateCourseItem(
+  itemId: string,
+  updates: Partial<Pick<CourseItem, "title" | "order">>
+): Promise<void> {
+  const itemRef = doc(db, COLLECTIONS.COURSE_ITEMS, itemId);
+  await updateDoc(itemRef, updates);
+}
+
+// Delete a course item
+export async function deleteCourseItem(itemId: string): Promise<void> {
+  const itemRef = doc(db, COLLECTIONS.COURSE_ITEMS, itemId);
+  await deleteDoc(itemRef);
+}
+
+// Reorder course items within a section
+export async function reorderCourseItems(
+  sectionId: string,
+  orderedIds: string[]
+): Promise<void> {
+  const batch = writeBatch(db);
+
+  orderedIds.forEach((id, index) => {
+    const itemRef = doc(db, COLLECTIONS.COURSE_ITEMS, id);
+    batch.update(itemRef, { order: index });
+  });
+
+  await batch.commit();
+}
+
+/**
+ * Meditation Management Functions
+ */
+
+export const getMeditations = async (): Promise<Meditation[]> => {
+  const q = query(collection(db, COLLECTIONS.MEDITATIONS), orderBy("created_at", "desc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    created_at: doc.data().created_at?.toDate() || new Date(),
+  } as Meditation));
+};
+
+export const createMeditation = async (title: string, fileUrl: string, userId: string, duration?: number): Promise<string> => {
+  const docRef = await addDoc(collection(db, COLLECTIONS.MEDITATIONS), {
+    title,
+    file_url: fileUrl,
+    duration: duration || 0,
+    created_by: userId,
+    created_at: serverTimestamp(),
+  });
+  return docRef.id;
+};
+
+export const deleteMeditation = async (meditationId: string) => {
+  await deleteDoc(doc(db, COLLECTIONS.MEDITATIONS, meditationId));
+};
