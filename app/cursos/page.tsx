@@ -152,9 +152,9 @@ export default function CursosPage() {
                                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-sage/20 bg-surface shadow-sm transition-all hover:shadow-md hover:-translate-y-1"
                             >
                                 <div className="aspect-video bg-desert-sand/10 flex items-center justify-center relative overflow-hidden">
-                                    {COURSE_IMAGE_MAP[course.title] ? (
+                                    {(course.thumbnail_url || COURSE_IMAGE_MAP[course.title]) ? (
                                         <Image
-                                            src={COURSE_IMAGE_MAP[course.title]}
+                                            src={course.thumbnail_url || COURSE_IMAGE_MAP[course.title]}
                                             alt={course.title}
                                             fill
                                             className="object-cover transition-transform duration-500 group-hover:scale-105"

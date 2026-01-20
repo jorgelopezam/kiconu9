@@ -89,6 +89,7 @@ export type CourseStatus = "active" | "inactive";
 export interface Course {
   id: string;
   title: string;
+  thumbnail_url?: string;
   access_level: CourseAccessLevel;
   status: CourseStatus;
   created_at: Date;

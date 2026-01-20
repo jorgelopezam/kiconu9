@@ -15,6 +15,8 @@ import {
     getUserProfile,
 } from "@/lib/firestore-helpers";
 import type { Course, CourseAccessLevel, CourseStatus, User } from "@/lib/firestore-schema";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
 export default function AdminCursosPage() {
     const { user, loading } = useAuth();
@@ -44,6 +46,19 @@ export default function AdminCursosPage() {
     const [assignedUserIds, setAssignedUserIds] = useState<Set<string>>(new Set());
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [savingAssignments, setSavingAssignments] = useState(false);
+
+    // File state
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
     // Check admin status
     useEffect(() => {
@@ -95,11 +110,21 @@ export default function AdminCursosPage() {
         if (!newTitle.trim() || !user) return;
 
         setCreating(true);
+        setCreating(true);
         try {
-            await createCourse(newTitle.trim(), newAccessLevel, newStatus, user.uid);
+            let downloadURL = "";
+            if (selectedFile) {
+                const storageRef = ref(storage, `courses/${Date.now()}_${selectedFile.name}`);
+                await uploadBytesResumable(storageRef, selectedFile);
+                downloadURL = await getDownloadURL(storageRef);
+            }
+
+            await createCourse(newTitle.trim(), newAccessLevel, newStatus, user.uid, downloadURL);
             setNewTitle("");
             setNewAccessLevel("base");
             setNewStatus("active");
+            setSelectedFile(null);
+            setPreviewUrl(null);
             setShowCreateModal(false);
             await fetchCourses();
         } catch (error) {
@@ -126,6 +151,8 @@ export default function AdminCursosPage() {
         setEditTitle(course.title);
         setEditAccessLevel(course.access_level);
         setEditStatus(course.status);
+        setSelectedFile(null);
+        setPreviewUrl(course.thumbnail_url || null);
         setShowEditModal(true);
     };
 
@@ -134,11 +161,20 @@ export default function AdminCursosPage() {
         if (!selectedCourse || !editTitle.trim()) return;
 
         setUpdating(true);
+        setUpdating(true);
         try {
+            let downloadURL = selectedCourse.thumbnail_url;
+            if (selectedFile) {
+                const storageRef = ref(storage, `courses/${Date.now()}_${selectedFile.name}`);
+                await uploadBytesResumable(storageRef, selectedFile);
+                downloadURL = await getDownloadURL(storageRef);
+            }
+
             await updateCourse(selectedCourse.id, {
                 title: editTitle.trim(),
                 access_level: editAccessLevel,
                 status: editStatus,
+                thumbnail_url: downloadURL
             });
             setShowEditModal(false);
             setSelectedCourse(null);
@@ -368,7 +404,24 @@ export default function AdminCursosPage() {
                                     <option value="base">Base (todos los usuarios base+)</option>
                                     <option value="kiconu">Kiconu (usuarios kiconu+)</option>
                                     <option value="premium">Premium (solo usuarios premium)</option>
+
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Imagen de Portada (Opcional)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="w-full text-sm text-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                                />
+                                {previewUrl && (
+                                    <div className="mt-2 relative h-32 w-full overflow-hidden rounded-xl border border-sage/20">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -401,76 +454,164 @@ export default function AdminCursosPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* Edit Course Modal */}
-            {showEditModal && selectedCourse && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
-                        <h2 className="mb-4 text-xl font-bold text-foreground">Editar Curso</h2>
+            {
+                showEditModal && selectedCourse && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                        <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+                            <h2 className="mb-4 text-xl font-bold text-foreground">Editar Curso</h2>
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Título</label>
-                                <input
-                                    type="text"
-                                    value={editTitle}
-                                    onChange={(e) => setEditTitle(e.target.value)}
-                                    placeholder="Nombre del curso"
-                                    className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                />
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Título</label>
+                                    <input
+                                        type="text"
+                                        value={editTitle}
+                                        onChange={(e) => setEditTitle(e.target.value)}
+                                        placeholder="Nombre del curso"
+                                        className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Nivel de Acceso</label>
+                                    <select
+                                        value={editAccessLevel}
+                                        onChange={(e) => setEditAccessLevel(e.target.value as CourseAccessLevel)}
+                                        className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    >
+                                        <option value="all">Todos (visto por todos los suscriptores)</option>
+                                        <option value="restricted">Restringido (asignar individualmente)</option>
+                                        <option value="base">Base (todos los usuarios base+)</option>
+                                        <option value="kiconu">Kiconu (usuarios kiconu+)</option>
+                                        <option value="premium">Premium (solo usuarios premium)</option>
+                                    </select>
+
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Imagen de Portada</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="w-full text-sm text-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                                    />
+                                    {previewUrl && (
+                                        <div className="mt-2 relative h-32 w-full overflow-hidden rounded-xl border border-sage/20">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Estado</label>
+                                    <select
+                                        value={editStatus}
+                                        onChange={(e) => setEditStatus(e.target.value as CourseStatus)}
+                                        className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    >
+                                        <option value="active">Activo</option>
+                                        <option value="inactive">Inactivo</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Nivel de Acceso</label>
-                                <select
-                                    value={editAccessLevel}
-                                    onChange={(e) => setEditAccessLevel(e.target.value as CourseAccessLevel)}
-                                    className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                            <div className="mt-6 flex flex-wrap-reverse items-center justify-between gap-4">
+                                <button
+                                    onClick={() => handleDeleteCourse(selectedCourse.id)}
+                                    className="flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium text-red-500 transition hover:bg-red-500/10"
                                 >
-                                    <option value="all">Todos (visto por todos los suscriptores)</option>
-                                    <option value="restricted">Restringido (asignar individualmente)</option>
-                                    <option value="base">Base (todos los usuarios base+)</option>
-                                    <option value="kiconu">Kiconu (usuarios kiconu+)</option>
-                                    <option value="premium">Premium (solo usuarios premium)</option>
-                                </select>
-                            </div>
+                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                    Eliminar Curso
+                                </button>
 
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Estado</label>
-                                <select
-                                    value={editStatus}
-                                    onChange={(e) => setEditStatus(e.target.value as CourseStatus)}
-                                    className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                >
-                                    <option value="active">Activo</option>
-                                    <option value="inactive">Inactivo</option>
-                                </select>
+                                <div className="flex flex-wrap gap-3">
+                                    <button
+                                        onClick={() => {
+                                            router.push(`/admincursoscontenido?courseId=${selectedCourse.id}`);
+                                        }}
+                                        className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20"
+                                    >
+                                        <span className="material-symbols-outlined text-lg">menu_book</span>
+                                        Contenido del Curso
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowEditModal(false);
+                                            setSelectedCourse(null);
+                                        }}
+                                        className="rounded-xl border border-sage/40 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleUpdateCourse}
+                                        disabled={updating || !editTitle.trim()}
+                                        className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
+                                    >
+                                        {updating ? "Guardando..." : "Guardar Cambios"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    </div >
+                )
+            }
 
-                        <div className="mt-6 flex flex-wrap-reverse items-center justify-between gap-4">
-                            <button
-                                onClick={() => handleDeleteCourse(selectedCourse.id)}
-                                className="flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium text-red-500 transition hover:bg-red-500/10"
-                            >
-                                <span className="material-symbols-outlined text-lg">delete</span>
-                                Eliminar Curso
-                            </button>
+            {/* Assign Users Modal */}
+            {
+                showAssignModal && selectedCourse && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                        <div className="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
+                            <h2 className="mb-2 text-xl font-bold text-foreground">Asignar Usuarios</h2>
+                            <p className="mb-4 text-sm text-muted-foreground">
+                                Curso: <span className="font-medium text-foreground">{selectedCourse.title}</span>
+                            </p>
 
-                            <div className="flex flex-wrap gap-3">
+                            {loadingUsers ? (
+                                <div className="py-8 text-center text-muted-foreground">Cargando usuarios...</div>
+                            ) : (
+                                <div className="max-h-80 overflow-y-auto rounded-xl border border-sage/30">
+                                    {allUsers.length === 0 ? (
+                                        <div className="py-8 text-center text-muted-foreground">No hay usuarios disponibles.</div>
+                                    ) : (
+                                        allUsers.map((u) => (
+                                            <label
+                                                key={u.user_id}
+                                                className="flex cursor-pointer items-center gap-3 border-b border-sage/10 px-4 py-3 transition hover:bg-desert-sand/10 last:border-0"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={assignedUserIds.has(u.user_id)}
+                                                    onChange={() => toggleUserAssignment(u.user_id)}
+                                                    className="size-4 rounded border-sage/40 text-primary focus:ring-primary/40"
+                                                />
+                                                <div>
+                                                    <div className="text-sm font-medium text-foreground">
+                                                        {u.first_name} {u.last_name}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">{u.email}</div>
+                                                </div>
+                                                {u.user_type && (
+                                                    <span className="ml-auto rounded-full bg-sage/20 px-2 py-0.5 text-xs text-muted-foreground">
+                                                        {u.user_type}
+                                                    </span>
+                                                )}
+                                            </label>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="mt-6 flex justify-end gap-3">
                                 <button
                                     onClick={() => {
-                                        router.push(`/admincursoscontenido?courseId=${selectedCourse.id}`);
-                                    }}
-                                    className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20"
-                                >
-                                    <span className="material-symbols-outlined text-lg">menu_book</span>
-                                    Contenido del Curso
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setShowEditModal(false);
+                                        setShowAssignModal(false);
                                         setSelectedCourse(null);
                                     }}
                                     className="rounded-xl border border-sage/40 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
@@ -478,83 +619,17 @@ export default function AdminCursosPage() {
                                     Cancelar
                                 </button>
                                 <button
-                                    onClick={handleUpdateCourse}
-                                    disabled={updating || !editTitle.trim()}
+                                    onClick={saveAssignments}
+                                    disabled={savingAssignments}
                                     className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
                                 >
-                                    {updating ? "Guardando..." : "Guardar Cambios"}
+                                    {savingAssignments ? "Guardando..." : "Guardar Cambios"}
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Assign Users Modal */}
-            {showAssignModal && selectedCourse && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
-                        <h2 className="mb-2 text-xl font-bold text-foreground">Asignar Usuarios</h2>
-                        <p className="mb-4 text-sm text-muted-foreground">
-                            Curso: <span className="font-medium text-foreground">{selectedCourse.title}</span>
-                        </p>
-
-                        {loadingUsers ? (
-                            <div className="py-8 text-center text-muted-foreground">Cargando usuarios...</div>
-                        ) : (
-                            <div className="max-h-80 overflow-y-auto rounded-xl border border-sage/30">
-                                {allUsers.length === 0 ? (
-                                    <div className="py-8 text-center text-muted-foreground">No hay usuarios disponibles.</div>
-                                ) : (
-                                    allUsers.map((u) => (
-                                        <label
-                                            key={u.user_id}
-                                            className="flex cursor-pointer items-center gap-3 border-b border-sage/10 px-4 py-3 transition hover:bg-desert-sand/10 last:border-0"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={assignedUserIds.has(u.user_id)}
-                                                onChange={() => toggleUserAssignment(u.user_id)}
-                                                className="size-4 rounded border-sage/40 text-primary focus:ring-primary/40"
-                                            />
-                                            <div>
-                                                <div className="text-sm font-medium text-foreground">
-                                                    {u.first_name} {u.last_name}
-                                                </div>
-                                                <div className="text-xs text-muted-foreground">{u.email}</div>
-                                            </div>
-                                            {u.user_type && (
-                                                <span className="ml-auto rounded-full bg-sage/20 px-2 py-0.5 text-xs text-muted-foreground">
-                                                    {u.user_type}
-                                                </span>
-                                            )}
-                                        </label>
-                                    ))
-                                )}
-                            </div>
-                        )}
-
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button
-                                onClick={() => {
-                                    setShowAssignModal(false);
-                                    setSelectedCourse(null);
-                                }}
-                                className="rounded-xl border border-sage/40 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={saveAssignments}
-                                disabled={savingAssignments}
-                                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
-                            >
-                                {savingAssignments ? "Guardando..." : "Guardar Cambios"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
