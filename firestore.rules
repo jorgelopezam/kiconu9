@@ -33,7 +33,7 @@ service cloud.firestore {
                        request.resource.data.user_id == userId &&
                        request.resource.data.email == request.auth.token.email &&
                        request.resource.data.is_admin == false &&
-                       request.resource.data.user_type == null;
+                       (request.resource.data.user_type == null || request.resource.data.user_type == 'base');
       
       // Allow update if:
       // - User is admin (can update any user including is_admin and user_type)
