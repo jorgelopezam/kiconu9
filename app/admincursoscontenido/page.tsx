@@ -451,7 +451,7 @@ function AdminCursosContenidoContent() {
         switch (type) {
             case "image": return "image/*";
             case "audio": return "audio/*,.mp3,.m4a,.wav,.aac";
-            case "video": return "video/*,.mov,.mp4,.webm,.m4v";
+            case "video": return ".mov,.mp4,.webm,.m4v,video/mp4,video/quicktime,video/webm";
             case "document": return ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx";
         }
     };

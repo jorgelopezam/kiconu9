@@ -14,6 +14,7 @@ export default function AudioPlayer({ src, title, onClose }: AudioPlayerProps) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [bufferProgress, setBufferProgress] = useState(0);
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -37,11 +38,36 @@ export default function AudioPlayer({ src, title, onClose }: AudioPlayerProps) {
         const handlePlay = () => setIsPlaying(true);
         const handlePause = () => setIsPlaying(false);
 
+        const handleProgress = () => {
+            if (audio.buffered.length > 0 && audio.duration > 0) {
+                const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
+                const progress = Math.round((bufferedEnd / audio.duration) * 100);
+                setBufferProgress(progress);
+            }
+        };
+
+        const handleCanPlayThrough = () => {
+            setIsLoading(false);
+            setBufferProgress(100);
+        };
+
+        const handleWaiting = () => {
+            setIsLoading(true);
+        };
+
+        const handlePlaying = () => {
+            setIsLoading(false);
+        };
+
         audio.addEventListener("loadedmetadata", handleLoadedMetadata);
         audio.addEventListener("timeupdate", handleTimeUpdate);
         audio.addEventListener("ended", handleEnded);
         audio.addEventListener("play", handlePlay);
         audio.addEventListener("pause", handlePause);
+        audio.addEventListener("progress", handleProgress);
+        audio.addEventListener("canplaythrough", handleCanPlayThrough);
+        audio.addEventListener("waiting", handleWaiting);
+        audio.addEventListener("playing", handlePlaying);
 
         return () => {
             audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
@@ -49,6 +75,10 @@ export default function AudioPlayer({ src, title, onClose }: AudioPlayerProps) {
             audio.removeEventListener("ended", handleEnded);
             audio.removeEventListener("play", handlePlay);
             audio.removeEventListener("pause", handlePause);
+            audio.removeEventListener("progress", handleProgress);
+            audio.removeEventListener("canplaythrough", handleCanPlayThrough);
+            audio.removeEventListener("waiting", handleWaiting);
+            audio.removeEventListener("playing", handlePlaying);
         };
     }, []);
 
@@ -88,9 +118,29 @@ export default function AudioPlayer({ src, title, onClose }: AudioPlayerProps) {
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#f4f7f0] [.theme-dark_&]:bg-[#23251a] border-t border-sage/20 shadow-lg">
-            <audio ref={audioRef} src={src} preload="metadata" autoPlay />
+            <audio ref={audioRef} src={src} preload="auto" autoPlay />
 
             <div className="max-w-4xl mx-auto px-4 py-3">
+                {/* Loading overlay */}
+                {isLoading && (
+                    <div className="mb-3 rounded-xl bg-desert-sand/30 dark:bg-sage/20 p-3">
+                        <div className="flex items-center gap-3">
+                            <div className="animate-spin">
+                                <span className="material-symbols-outlined text-primary">autorenew</span>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-foreground">Cargando audio...</p>
+                                <div className="mt-1.5 h-2 rounded-full bg-sage/20 overflow-hidden">
+                                    <div
+                                        className="h-full bg-primary transition-all duration-300"
+                                        style={{ width: `${bufferProgress}%` }}
+                                    />
+                                </div>
+                                <p className="mt-1 text-xs text-muted-foreground">{bufferProgress}% cargado</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Title bar with close button */}
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 min-w-0">
