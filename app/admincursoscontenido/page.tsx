@@ -57,7 +57,7 @@ function AdminCursosContenidoContent() {
     const [showAddItemModal, setShowAddItemModal] = useState(false);
     const [addItemSectionId, setAddItemSectionId] = useState<string | null>(null);
     const [newItemTitle, setNewItemTitle] = useState("");
-    const [newItemType, setNewItemType] = useState<CourseItemType>("image");
+    const [newItemType, setNewItemType] = useState<CourseItemType | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [addingItemLoading, setAddingItemLoading] = useState(false);
@@ -350,7 +350,9 @@ function AdminCursosContenidoContent() {
 
     // Add item
     const handleAddItem = async () => {
-        if (!courseId || !addItemSectionId || !newItemTitle.trim() || !selectedFile) return;
+        if (!courseId || !addItemSectionId || !newItemTitle.trim() || !selectedFile || !newItemType) return;
+
+        const itemType = newItemType; // Capture for TypeScript narrowing
 
         setAddingItemLoading(true);
         setUploadProgress(0);
@@ -360,27 +362,27 @@ function AdminCursosContenidoContent() {
             let fileUrl = "";
             let muxData: { playbackId: string; assetId: string } | undefined;
 
-            if (newItemType === "video") {
+            if (itemType === "video") {
                 // Upload to Mux
                 muxData = await uploadVideoToMux(selectedFile);
                 fileUrl = getMuxThumbnailUrl(muxData.playbackId);
             } else {
                 // Upload to Firebase Storage
-                fileUrl = await uploadToStorage(selectedFile, newItemType);
+                fileUrl = await uploadToStorage(selectedFile, itemType);
             }
 
             await createCourseItem(
                 addItemSectionId,
                 courseId,
                 newItemTitle.trim(),
-                newItemType,
+                itemType,
                 fileUrl,
                 muxData
             );
 
             // Reset form
             setNewItemTitle("");
-            setNewItemType("image");
+            setNewItemType(null);
             setSelectedFile(null);
             setShowAddItemModal(false);
             setAddItemSectionId(null);
@@ -702,101 +704,165 @@ function AdminCursosContenidoContent() {
                     <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
                         <h2 className="mb-4 text-xl font-bold text-foreground">Agregar Contenido</h2>
 
-                        <div className="space-y-4">
+                        {/* Step 1: Type Selection */}
+                        {!newItemType && (
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Título a mostrar</label>
-                                <input
-                                    type="text"
-                                    value={newItemTitle}
-                                    onChange={(e) => setNewItemTitle(e.target.value)}
-                                    placeholder="Ej: Video de Bienvenida"
-                                    className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                    autoFocus
-                                />
-                            </div>
-
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">Tipo de contenido</label>
-                                <div className="grid grid-cols-4 gap-2">
+                                <p className="mb-3 text-sm text-muted-foreground">Selecciona el tipo de contenido:</p>
+                                <div className="grid grid-cols-2 gap-3">
                                     {(["image", "audio", "video", "document"] as CourseItemType[]).map((type) => (
                                         <button
                                             key={type}
                                             onClick={() => {
                                                 setNewItemType(type);
                                                 setSelectedFile(null);
-                                                if (fileInputRef.current) fileInputRef.current.value = "";
                                             }}
-                                            className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition ${newItemType === type
-                                                ? "border-primary bg-primary/10 text-primary"
-                                                : "border-sage/30 text-muted-foreground hover:border-sage/50"
-                                                }`}
+                                            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-sage/30 text-muted-foreground hover:border-primary hover:bg-primary/5 transition"
                                         >
-                                            <span className={`material-symbols-outlined text-2xl ${getItemTypeColor(type)}`}>
+                                            <span className={`material-symbols-outlined text-3xl ${getItemTypeColor(type)}`}>
                                                 {getItemTypeIcon(type)}
                                             </span>
-                                            <span className="text-xs font-medium capitalize">{type === "document" ? "Doc" : type}</span>
+                                            <span className="text-sm font-medium capitalize">
+                                                {type === "document" ? "Documento" : type === "image" ? "Imagen" : type === "audio" ? "Audio" : "Video"}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Archivo</label>
-                                <input
-                                    key={newItemType}
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept={getAcceptedFiles(newItemType)}
-                                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                                    className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
-                                />
-                                {selectedFile && (
-                                    <p className="mt-1 text-xs text-muted-foreground truncate">
-                                        {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Upload progress */}
-                            {addingItemLoading && (
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">{uploadStatus}</span>
-                                        <span className="font-medium text-foreground">{uploadProgress}%</span>
-                                    </div>
-                                    <div className="h-2 rounded-full bg-sage/20 overflow-hidden">
-                                        <div
-                                            className="h-full bg-primary transition-all duration-300"
-                                            style={{ width: `${uploadProgress}%` }}
-                                        />
-                                    </div>
+                                <div className="mt-6 flex justify-end">
+                                    <button
+                                        onClick={() => {
+                                            setShowAddItemModal(false);
+                                            setAddItemSectionId(null);
+                                        }}
+                                        className="rounded-xl border border-sage/40 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                                    >
+                                        Cancelar
+                                    </button>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button
-                                onClick={() => {
-                                    setShowAddItemModal(false);
-                                    setAddItemSectionId(null);
-                                    setNewItemTitle("");
-                                    setNewItemType("image");
-                                    setSelectedFile(null);
-                                    if (fileInputRef.current) fileInputRef.current.value = "";
-                                }}
-                                disabled={addingItemLoading}
-                                className="rounded-xl border border-sage/40 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-desert-sand/20 disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleAddItem}
-                                disabled={addingItemLoading || !newItemTitle.trim() || !selectedFile}
-                                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
-                            >
-                                {addingItemLoading ? "Subiendo..." : "Agregar"}
-                            </button>
-                        </div>
+                        {/* Step 2: Type-specific form */}
+                        {newItemType && (
+                            <div className="space-y-4">
+                                {/* Selected type indicator with back button */}
+                                <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/10 border border-primary/20">
+                                    <span className={`material-symbols-outlined text-2xl ${getItemTypeColor(newItemType)}`}>
+                                        {getItemTypeIcon(newItemType)}
+                                    </span>
+                                    <span className="font-medium text-foreground capitalize">
+                                        {newItemType === "document" ? "Documento" : newItemType === "image" ? "Imagen" : newItemType === "audio" ? "Audio" : "Video"}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setNewItemType(null);
+                                            setSelectedFile(null);
+                                            setNewItemTitle("");
+                                        }}
+                                        className="ml-auto text-xs text-primary hover:underline"
+                                    >
+                                        Cambiar
+                                    </button>
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Título a mostrar</label>
+                                    <input
+                                        type="text"
+                                        value={newItemTitle}
+                                        onChange={(e) => setNewItemTitle(e.target.value)}
+                                        placeholder="Ej: Video de Bienvenida"
+                                        className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                        autoFocus
+                                    />
+                                </div>
+
+                                {/* Separate file inputs for each type */}
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Archivo</label>
+
+                                    {newItemType === "image" && (
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
+                                        />
+                                    )}
+
+                                    {newItemType === "audio" && (
+                                        <input
+                                            type="file"
+                                            accept="audio/*,.mp3,.m4a,.wav,.aac"
+                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
+                                        />
+                                    )}
+
+                                    {newItemType === "video" && (
+                                        <input
+                                            type="file"
+                                            accept=".mov,.mp4,.webm,.m4v,video/mp4,video/quicktime,video/webm"
+                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
+                                        />
+                                    )}
+
+                                    {newItemType === "document" && (
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
+                                        />
+                                    )}
+
+                                    {selectedFile && (
+                                        <p className="mt-1 text-xs text-muted-foreground truncate">
+                                            {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Upload progress */}
+                                {addingItemLoading && (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">{uploadStatus}</span>
+                                            <span className="font-medium text-foreground">{uploadProgress}%</span>
+                                        </div>
+                                        <div className="h-2 rounded-full bg-sage/20 overflow-hidden">
+                                            <div
+                                                className="h-full bg-primary transition-all duration-300"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-6 flex justify-end gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowAddItemModal(false);
+                                            setAddItemSectionId(null);
+                                            setNewItemTitle("");
+                                            setNewItemType(null);
+                                            setSelectedFile(null);
+                                        }}
+                                        disabled={addingItemLoading}
+                                        className="rounded-xl border border-sage/40 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-desert-sand/20 disabled:opacity-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleAddItem}
+                                        disabled={addingItemLoading || !newItemTitle.trim() || !selectedFile}
+                                        className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
+                                    >
+                                        {addingItemLoading ? "Subiendo..." : "Agregar"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
