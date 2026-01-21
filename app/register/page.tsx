@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { updateUserRegistrationDetails } from "@/lib/firestore-helpers";
 
 export default function RegisterPage() {
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, refreshProfile } = useAuth();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -61,6 +61,9 @@ export default function RegisterPage() {
         weight: parseFloat(formData.weight),
         gender: formData.gender as "male" | "female" | "other" | "prefer_not_to_say",
       });
+
+      // Refresh profile in context so AuthGuard sees the new data
+      await refreshProfile();
 
       // Redirect to cursos (user already has a plan selected)
       router.push("/cursos");
