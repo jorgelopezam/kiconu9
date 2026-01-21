@@ -743,6 +743,7 @@ function AdminCursosContenidoContent() {
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-foreground">Archivo</label>
                                 <input
+                                    key={newItemType}
                                     ref={fileInputRef}
                                     type="file"
                                     accept={getAcceptedFiles(newItemType)}
