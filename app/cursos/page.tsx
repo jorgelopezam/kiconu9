@@ -27,6 +27,7 @@ export default function CursosPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [profile, setProfile] = useState<User | null>(null);
     const [loadingCourses, setLoadingCourses] = useState(true);
+    const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -78,6 +79,12 @@ export default function CursosPage() {
         });
     }, [courses, profile]);
 
+    const handleThumbnailClick = (course: Course) => {
+        if (course.intro_video_url) {
+            setPlayingVideoUrl(course.intro_video_url);
+        }
+    };
+
     if (authLoading || loadingCourses) {
         return (
             <div className="flex min-h-[60vh] items-center justify-center">
@@ -88,6 +95,32 @@ export default function CursosPage() {
 
     return (
         <div className="min-h-screen relative">
+            {/* Video Modal */}
+            {playingVideoUrl && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                    onClick={() => setPlayingVideoUrl(null)}
+                >
+                    <div
+                        className="relative w-full max-w-4xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setPlayingVideoUrl(null)}
+                            className="absolute -top-12 right-0 p-2 text-white hover:text-primary transition"
+                        >
+                            <span className="material-symbols-outlined text-3xl">close</span>
+                        </button>
+                        <video
+                            src={playingVideoUrl}
+                            controls
+                            autoPlay
+                            className="w-full rounded-2xl shadow-2xl"
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Background Image - Fixed to cover full screen despite layout constraints */}
             <div className="fixed inset-0 z-0">
                 <Image
@@ -151,7 +184,10 @@ export default function CursosPage() {
                                 key={course.id}
                                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-sage/20 bg-surface shadow-sm transition-all hover:shadow-md hover:-translate-y-1"
                             >
-                                <div className="aspect-video bg-desert-sand/10 flex items-center justify-center relative overflow-hidden">
+                                <div
+                                    className={`aspect-video bg-desert-sand/10 flex items-center justify-center relative overflow-hidden ${course.intro_video_url ? 'cursor-pointer' : ''}`}
+                                    onClick={() => handleThumbnailClick(course)}
+                                >
                                     {(course.thumbnail_url || COURSE_IMAGE_MAP[course.title]) ? (
                                         <Image
                                             src={course.thumbnail_url || COURSE_IMAGE_MAP[course.title]}
@@ -163,6 +199,14 @@ export default function CursosPage() {
                                         <span className="material-symbols-outlined text-5xl text-primary/20 transition-transform group-hover:scale-110">
                                             play_circle
                                         </span>
+                                    )}
+                                    {/* Play button overlay for courses with intro video */}
+                                    {course.intro_video_url && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="material-symbols-outlined text-5xl text-white drop-shadow-lg">
+                                                play_circle
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                                 <div className="flex flex-1 flex-col p-6">
@@ -196,3 +240,4 @@ export default function CursosPage() {
         </div>
     );
 }
+

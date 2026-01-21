@@ -277,7 +277,8 @@ export async function createCourse(
   accessLevel: CourseAccessLevel,
   status: CourseStatus,
   createdBy: string,
-  thumbnailUrl?: string
+  thumbnailUrl?: string,
+  introVideoUrl?: string
 ): Promise<string> {
   const coursesRef = collection(db, COLLECTIONS.COURSES);
 
@@ -288,6 +289,7 @@ export async function createCourse(
     created_by: createdBy,
     created_at: serverTimestamp(),
     ...(thumbnailUrl ? { thumbnail_url: thumbnailUrl } : {}),
+    ...(introVideoUrl ? { intro_video_url: introVideoUrl } : {}),
   };
 
   const docRef = await addDoc(coursesRef, courseData);
@@ -310,6 +312,7 @@ export async function getAllCourses(): Promise<Course[]> {
       created_at: data.created_at?.toDate() || new Date(),
       created_by: data.created_by,
       thumbnail_url: data.thumbnail_url,
+      intro_video_url: data.intro_video_url,
     } as Course;
   });
 }
@@ -317,7 +320,7 @@ export async function getAllCourses(): Promise<Course[]> {
 // Update a course
 export async function updateCourse(
   courseId: string,
-  updates: Partial<Pick<Course, "title" | "access_level" | "status" | "thumbnail_url">>
+  updates: Partial<Pick<Course, "title" | "access_level" | "status" | "thumbnail_url" | "intro_video_url">>
 ): Promise<void> {
   const courseRef = doc(db, COLLECTIONS.COURSES, courseId);
   await updateDoc(courseRef, updates);

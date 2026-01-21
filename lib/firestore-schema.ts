@@ -90,6 +90,7 @@ export interface Course {
   id: string;
   title: string;
   thumbnail_url?: string;
+  intro_video_url?: string;
   access_level: CourseAccessLevel;
   status: CourseStatus;
   created_at: Date;

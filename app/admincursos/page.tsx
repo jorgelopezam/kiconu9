@@ -52,11 +52,23 @@ export default function AdminCursosPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
 
+    // Intro video state
+    const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setSelectedFile(file);
             setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedVideoFile(file);
+            setVideoPreviewUrl(URL.createObjectURL(file));
         }
     };
 
@@ -110,21 +122,30 @@ export default function AdminCursosPage() {
         if (!newTitle.trim() || !user) return;
 
         setCreating(true);
-        setCreating(true);
         try {
-            let downloadURL = "";
+            let thumbnailDownloadURL = "";
+            let introVideoDownloadURL = "";
+
             if (selectedFile) {
                 const storageRef = ref(storage, `courses/${Date.now()}_${selectedFile.name}`);
                 await uploadBytesResumable(storageRef, selectedFile);
-                downloadURL = await getDownloadURL(storageRef);
+                thumbnailDownloadURL = await getDownloadURL(storageRef);
             }
 
-            await createCourse(newTitle.trim(), newAccessLevel, newStatus, user.uid, downloadURL);
+            if (selectedVideoFile) {
+                const videoStorageRef = ref(storage, `courses/videos/${Date.now()}_${selectedVideoFile.name}`);
+                await uploadBytesResumable(videoStorageRef, selectedVideoFile);
+                introVideoDownloadURL = await getDownloadURL(videoStorageRef);
+            }
+
+            await createCourse(newTitle.trim(), newAccessLevel, newStatus, user.uid, thumbnailDownloadURL, introVideoDownloadURL);
             setNewTitle("");
             setNewAccessLevel("base");
             setNewStatus("active");
             setSelectedFile(null);
             setPreviewUrl(null);
+            setSelectedVideoFile(null);
+            setVideoPreviewUrl(null);
             setShowCreateModal(false);
             await fetchCourses();
         } catch (error) {
@@ -153,6 +174,8 @@ export default function AdminCursosPage() {
         setEditStatus(course.status);
         setSelectedFile(null);
         setPreviewUrl(course.thumbnail_url || null);
+        setSelectedVideoFile(null);
+        setVideoPreviewUrl(course.intro_video_url || null);
         setShowEditModal(true);
     };
 
@@ -161,20 +184,28 @@ export default function AdminCursosPage() {
         if (!selectedCourse || !editTitle.trim()) return;
 
         setUpdating(true);
-        setUpdating(true);
         try {
-            let downloadURL = selectedCourse.thumbnail_url;
+            let thumbnailDownloadURL = selectedCourse.thumbnail_url;
+            let introVideoDownloadURL = selectedCourse.intro_video_url;
+
             if (selectedFile) {
                 const storageRef = ref(storage, `courses/${Date.now()}_${selectedFile.name}`);
                 await uploadBytesResumable(storageRef, selectedFile);
-                downloadURL = await getDownloadURL(storageRef);
+                thumbnailDownloadURL = await getDownloadURL(storageRef);
+            }
+
+            if (selectedVideoFile) {
+                const videoStorageRef = ref(storage, `courses/videos/${Date.now()}_${selectedVideoFile.name}`);
+                await uploadBytesResumable(videoStorageRef, selectedVideoFile);
+                introVideoDownloadURL = await getDownloadURL(videoStorageRef);
             }
 
             await updateCourse(selectedCourse.id, {
                 title: editTitle.trim(),
                 access_level: editAccessLevel,
                 status: editStatus,
-                thumbnail_url: downloadURL
+                thumbnail_url: thumbnailDownloadURL,
+                intro_video_url: introVideoDownloadURL
             });
             setShowEditModal(false);
             setSelectedCourse(null);
@@ -425,6 +456,22 @@ export default function AdminCursosPage() {
                             </div>
 
                             <div>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Video de Introducción (Opcional)</label>
+                                <input
+                                    type="file"
+                                    accept=".mov,.mp4,.webm,.m4v,video/mp4,video/quicktime,video/webm"
+                                    onChange={handleVideoFileChange}
+                                    className="w-full text-sm text-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                                />
+                                {videoPreviewUrl && (
+                                    <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                                        Video seleccionado
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
                                 <label className="mb-1 block text-sm font-medium text-foreground">Estado</label>
                                 <select
                                     value={newStatus}
@@ -505,6 +552,22 @@ export default function AdminCursosPage() {
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
                                         </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Video de Introducción</label>
+                                    <input
+                                        type="file"
+                                        accept=".mov,.mp4,.webm,.m4v,video/mp4,video/quicktime,video/webm"
+                                        onChange={handleVideoFileChange}
+                                        className="w-full text-sm text-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                                    />
+                                    {videoPreviewUrl && (
+                                        <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                                            Video cargado
+                                        </p>
                                     )}
                                 </div>
 
