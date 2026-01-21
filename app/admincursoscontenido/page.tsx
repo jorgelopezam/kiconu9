@@ -782,6 +782,7 @@ function AdminCursosContenidoContent() {
 
                                     {newItemType === "image" && (
                                         <input
+                                            id="file-input-image"
                                             type="file"
                                             accept="image/*"
                                             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
@@ -791,6 +792,7 @@ function AdminCursosContenidoContent() {
 
                                     {newItemType === "audio" && (
                                         <input
+                                            id="file-input-audio"
                                             type="file"
                                             accept="audio/*,.mp3,.m4a,.wav,.aac"
                                             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
@@ -800,8 +802,9 @@ function AdminCursosContenidoContent() {
 
                                     {newItemType === "video" && (
                                         <input
+                                            id="file-input-video"
                                             type="file"
-                                            accept=".mov,.mp4,.webm,.m4v,video/mp4,video/quicktime,video/webm"
+                                            accept="video/*"
                                             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                                             className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
                                         />
@@ -809,8 +812,9 @@ function AdminCursosContenidoContent() {
 
                                     {newItemType === "document" && (
                                         <input
+                                            id="file-input-document"
                                             type="file"
-                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword"
                                             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                                             className="w-full rounded-xl border border-sage/40 bg-desert-sand/20 px-4 py-2.5 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-1 file:text-white file:cursor-pointer"
                                         />
