@@ -7,7 +7,7 @@ export function Footer() {
         <LogoMark className="text-primary" textClassName="text-foreground" />
         <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Kiconu. Todos los derechos reservados.</p>
-          <p className="text-[12px] text-muted-foreground m-auto">version 6.8.10</p>
+          <p className="text-[12px] text-muted-foreground m-auto">version 6.8.11</p>
         </div>
       </div>
     </footer>

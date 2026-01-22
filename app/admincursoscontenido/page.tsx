@@ -22,6 +22,10 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { COLLECTIONS } from "@/lib/firestore-schema";
 import type { Course, CourseSection, CourseItem, CourseItemType } from "@/lib/firestore-schema";
 import { getMuxThumbnailUrl } from "@/lib/mux";
+import { ImageUploadDialog } from "@/components/course/ImageUploadDialog";
+import { AudioUploadDialog } from "@/components/course/AudioUploadDialog";
+import { VideoUploadDialog } from "@/components/course/VideoUploadDialog";
+import { DocumentUploadDialog } from "@/components/course/DocumentUploadDialog";
 
 export default function AdminCursosContenidoPage() {
     return (
@@ -53,7 +57,14 @@ function AdminCursosContenidoContent() {
     const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
     const [editSectionTitle, setEditSectionTitle] = useState("");
 
-    // Add item modal
+    // Upload dialogs - separate for each type
+    const [uploadDialogSectionId, setUploadDialogSectionId] = useState<string | null>(null);
+    const [showImageDialog, setShowImageDialog] = useState(false);
+    const [showAudioDialog, setShowAudioDialog] = useState(false);
+    const [showVideoDialog, setShowVideoDialog] = useState(false);
+    const [showDocumentDialog, setShowDocumentDialog] = useState(false);
+
+    // Legacy add item modal state (to be removed after migration)
     const [showAddItemModal, setShowAddItemModal] = useState(false);
     const [addItemSectionId, setAddItemSectionId] = useState<string | null>(null);
     const [newItemTitle, setNewItemTitle] = useState("");
@@ -626,18 +637,55 @@ function AdminCursosContenidoContent() {
                                             </ul>
                                         )}
 
-                                        {/* Add item button */}
+                                        {/* Add item buttons - 4 separate types */}
                                         <div className="p-4 border-t border-sage/10">
-                                            <button
-                                                onClick={() => {
-                                                    setAddItemSectionId(section.id);
-                                                    setShowAddItemModal(true);
-                                                }}
-                                                className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-600 transition"
-                                            >
-                                                <span className="material-symbols-outlined text-lg">add</span>
-                                                Agregar Contenido
-                                            </button>
+                                            <p className="text-xs text-muted-foreground mb-2">Agregar Contenido:</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setUploadDialogSectionId(section.id);
+                                                        setShowImageDialog(true);
+                                                    }}
+                                                    className="flex flex-col items-center gap-1 p-2 rounded-lg border border-sage/30 text-muted-foreground hover:border-green-500 hover:text-green-500 hover:bg-green-500/5 transition"
+                                                    title="Agregar Imagen"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl text-green-500">image</span>
+                                                    <span className="text-[10px]">Imagen</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setUploadDialogSectionId(section.id);
+                                                        setShowAudioDialog(true);
+                                                    }}
+                                                    className="flex flex-col items-center gap-1 p-2 rounded-lg border border-sage/30 text-muted-foreground hover:border-blue-500 hover:text-blue-500 hover:bg-blue-500/5 transition"
+                                                    title="Agregar Audio"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl text-blue-500">headphones</span>
+                                                    <span className="text-[10px]">Audio</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setUploadDialogSectionId(section.id);
+                                                        setShowVideoDialog(true);
+                                                    }}
+                                                    className="flex flex-col items-center gap-1 p-2 rounded-lg border border-sage/30 text-muted-foreground hover:border-red-500 hover:text-red-500 hover:bg-red-500/5 transition"
+                                                    title="Agregar Video"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl text-red-500">videocam</span>
+                                                    <span className="text-[10px]">Video</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setUploadDialogSectionId(section.id);
+                                                        setShowDocumentDialog(true);
+                                                    }}
+                                                    className="flex flex-col items-center gap-1 p-2 rounded-lg border border-sage/30 text-muted-foreground hover:border-amber-600 hover:text-amber-600 hover:bg-amber-600/5 transition"
+                                                    title="Agregar Documento"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl text-amber-600">description</span>
+                                                    <span className="text-[10px]">Doc</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -989,6 +1037,36 @@ function AdminCursosContenidoContent() {
                     </div>
                 </div>
             )}
+
+            {/* Separate Upload Dialog Components */}
+            <ImageUploadDialog
+                isOpen={showImageDialog}
+                onClose={() => { setShowImageDialog(false); setUploadDialogSectionId(null); }}
+                sectionId={uploadDialogSectionId || ""}
+                courseId={courseId || ""}
+                onSuccess={loadCourseContent}
+            />
+            <AudioUploadDialog
+                isOpen={showAudioDialog}
+                onClose={() => { setShowAudioDialog(false); setUploadDialogSectionId(null); }}
+                sectionId={uploadDialogSectionId || ""}
+                courseId={courseId || ""}
+                onSuccess={loadCourseContent}
+            />
+            <VideoUploadDialog
+                isOpen={showVideoDialog}
+                onClose={() => { setShowVideoDialog(false); setUploadDialogSectionId(null); }}
+                sectionId={uploadDialogSectionId || ""}
+                courseId={courseId || ""}
+                onSuccess={loadCourseContent}
+            />
+            <DocumentUploadDialog
+                isOpen={showDocumentDialog}
+                onClose={() => { setShowDocumentDialog(false); setUploadDialogSectionId(null); }}
+                sectionId={uploadDialogSectionId || ""}
+                courseId={courseId || ""}
+                onSuccess={loadCourseContent}
+            />
         </div>
     );
 }
