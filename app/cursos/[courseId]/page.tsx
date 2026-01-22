@@ -12,6 +12,7 @@ import { COLLECTIONS } from "@/lib/firestore-schema";
 import type { User, Course, CourseSection, CourseItem } from "@/lib/firestore-schema";
 import AudioPlayer from "../../../components/media/AudioPlayer";
 import MuxVideoPlayer from "../../../components/common/MuxVideoPlayer";
+import SimpleVideoPlayer from "@/components/common/SimpleVideoPlayer";
 
 // Legacy course content for "cortisol" course (backwards compatibility)
 interface LegacyCourseContent {
@@ -525,11 +526,11 @@ export default function CourseDetailPage() {
                                                             </button>
                                                         )}
 
-                                                        {/* Video - opens MuxVideoPlayer */}
+                                                        {/* Video - opens Video Player (Mux or Standard) */}
                                                         {item.type === "video" && (
                                                             <button
                                                                 onClick={() => setPlayingMedia({
-                                                                    type: "mux-video",
+                                                                    type: item.mux_playback_id ? "mux-video" : "video",
                                                                     file: item.file_url,
                                                                     title: item.title,
                                                                     muxPlaybackId: item.mux_playback_id
@@ -580,6 +581,15 @@ export default function CourseDetailPage() {
             {playingMedia?.type === "mux-video" && playingMedia.muxPlaybackId && (
                 <MuxVideoPlayer
                     playbackId={playingMedia.muxPlaybackId}
+                    title={playingMedia.title}
+                    onClose={() => setPlayingMedia(null)}
+                />
+            )}
+
+            {/* Standard Video Player - modal overlay */}
+            {playingMedia?.type === "video" && (
+                <SimpleVideoPlayer
+                    src={playingMedia.file}
                     title={playingMedia.title}
                     onClose={() => setPlayingMedia(null)}
                 />

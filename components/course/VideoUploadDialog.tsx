@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 import { createCourseItem } from "@/lib/firestore-helpers";
 
 interface VideoUploadDialogProps {
@@ -11,10 +13,6 @@ interface VideoUploadDialogProps {
     onSuccess: () => void;
 }
 
-// Helper to get Mux thumbnail URL
-const getMuxThumbnailUrl = (playbackId: string) =>
-    `https://image.mux.com/${playbackId}/thumbnail.jpg?time=0`;
-
 export function VideoUploadDialog({ isOpen, onClose, sectionId, courseId, onSuccess }: VideoUploadDialogProps) {
     const [title, setTitle] = useState("");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -22,78 +20,39 @@ export function VideoUploadDialog({ isOpen, onClose, sectionId, courseId, onSucc
     const [progress, setProgress] = useState(0);
     const [status, setStatus] = useState("");
 
-    const uploadVideoToMux = async (file: File): Promise<{ playbackId: string; assetId: string }> => {
-        setStatus("Obteniendo URL de subida...");
-        setProgress(5);
-
-        const uploadResponse = await fetch("/api/mux/upload", { method: "POST" });
-        if (!uploadResponse.ok) throw new Error("Failed to get upload URL");
-        const { uploadUrl, uploadId } = await uploadResponse.json();
-
-        setStatus("Subiendo video a Mux...");
-        const xhr = new XMLHttpRequest();
-
-        await new Promise<void>((resolve, reject) => {
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const pct = Math.round((event.loaded / event.total) * 80) + 10;
-                    setProgress(pct);
-                }
-            };
-            xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error("Upload failed"));
-            xhr.onerror = () => reject(new Error("Upload error"));
-            xhr.open("PUT", uploadUrl);
-            xhr.send(file);
-        });
-
-        setStatus("Procesando video...");
-        setProgress(95);
-
-        let assetId = "";
-        let attempts = 0;
-        while (!assetId && attempts < 30) {
-            await new Promise(r => setTimeout(r, 2000));
-            const statusRes = await fetch(`/api/mux/upload/${uploadId}`);
-            const statusData = await statusRes.json();
-            if (statusData.assetId) assetId = statusData.assetId;
-            attempts++;
-        }
-        if (!assetId) throw new Error("Failed to get asset ID");
-
-        let playbackId = "";
-        attempts = 0;
-        while (!playbackId && attempts < 60) {
-            await new Promise(r => setTimeout(r, 3000));
-            const assetRes = await fetch(`/api/mux/asset/${assetId}`);
-            const assetData = await assetRes.json();
-            if (assetData.status === "ready" && assetData.playbackId) {
-                playbackId = assetData.playbackId;
-            } else if (assetData.status === "errored") {
-                throw new Error("Asset processing failed");
-            }
-            attempts++;
-        }
-        if (!playbackId) throw new Error("Video processing timed out");
-
-        return { playbackId, assetId };
-    };
-
     const handleSubmit = async () => {
         if (!title.trim() || !selectedFile) return;
 
         setUploading(true);
         setProgress(0);
-        setStatus("Iniciando subida...");
+        setStatus("Subiendo video...");
 
         try {
-            const muxData = await uploadVideoToMux(selectedFile);
-            const fileUrl = getMuxThumbnailUrl(muxData.playbackId);
+            const fileName = `${Date.now()}_${selectedFile.name}`;
+            // Upload to Firebase Storage instead of Mux
+            const storageRef = ref(storage, `courses/videos/${courseId}/${fileName}`);
+            const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
-            setStatus("Guardando...");
-            await createCourseItem(sectionId, courseId, title.trim(), "video", fileUrl, muxData);
-
-            handleClose();
-            onSuccess();
+            await new Promise<string>((resolve, reject) => {
+                uploadTask.on(
+                    "state_changed",
+                    (snapshot) => {
+                        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                        setProgress(pct);
+                    },
+                    reject,
+                    async () => {
+                        const url = await getDownloadURL(uploadTask.snapshot.ref);
+                        resolve(url);
+                    }
+                );
+            }).then(async (fileUrl) => {
+                setStatus("Guardando...");
+                // Pass null for muxData since we are using Firebase Storage
+                await createCourseItem(sectionId, courseId, title.trim(), "video", fileUrl);
+                handleClose();
+                onSuccess();
+            });
         } catch (error) {
             console.error("Error uploading video:", error);
             alert("Error al subir el video");
