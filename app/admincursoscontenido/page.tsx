@@ -1044,28 +1044,28 @@ function AdminCursosContenidoContent() {
                 onClose={() => { setShowImageDialog(false); setUploadDialogSectionId(null); }}
                 sectionId={uploadDialogSectionId || ""}
                 courseId={courseId || ""}
-                onSuccess={loadCourseContent}
+                onSuccess={fetchData}
             />
             <AudioUploadDialog
                 isOpen={showAudioDialog}
                 onClose={() => { setShowAudioDialog(false); setUploadDialogSectionId(null); }}
                 sectionId={uploadDialogSectionId || ""}
                 courseId={courseId || ""}
-                onSuccess={loadCourseContent}
+                onSuccess={fetchData}
             />
             <VideoUploadDialog
                 isOpen={showVideoDialog}
                 onClose={() => { setShowVideoDialog(false); setUploadDialogSectionId(null); }}
                 sectionId={uploadDialogSectionId || ""}
                 courseId={courseId || ""}
-                onSuccess={loadCourseContent}
+                onSuccess={fetchData}
             />
             <DocumentUploadDialog
                 isOpen={showDocumentDialog}
                 onClose={() => { setShowDocumentDialog(false); setUploadDialogSectionId(null); }}
                 sectionId={uploadDialogSectionId || ""}
                 courseId={courseId || ""}
-                onSuccess={loadCourseContent}
+                onSuccess={fetchData}
             />
         </div>
     );
