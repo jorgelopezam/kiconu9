@@ -11,7 +11,7 @@ import {
   updateUserType
 } from "@/lib/firestore-helpers";
 import type { User as FirestoreUser, UserType } from "@/lib/firestore-schema";
-import { updatePassword, updateEmail as updateAuthEmail } from "firebase/auth";
+import { updatePassword, updateEmail as updateAuthEmail, getIdToken } from "firebase/auth";
 
 const PASSWORD_PLACEHOLDER = "********";
 
@@ -20,16 +20,18 @@ type ProfileModalProps = {
   onClose: () => void;
   user: FirestoreUser | null;
   onEdit?: (field: EditableField, userId: string, currentValue: string | number | undefined) => void;
+  onToggleClient?: (userId: string, currentValue: boolean) => void;
+  onToggleCoach?: (userId: string, currentValue: boolean) => void;
 };
 
-function ProfileModal({ isOpen, onClose, user, onEdit }: ProfileModalProps) {
+function ProfileModal({ isOpen, onClose, user, onEdit, onToggleClient, onToggleCoach }: ProfileModalProps) {
   if (!isOpen || !user) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center  p-4 overflow-y-auto">
-      <div className="w-full max-w-3xl my-8 rounded-2xl border border-panel-border bg-black shadow-xl">
-        <div className="flex items-center justify-between border-b border-panel-border p-6">
-          <h3 className="text-2xl font-bold text-panel-text">Perfil de Usuario</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+      <div className="w-full max-w-3xl my-8 rounded-2xl border border-panel-border bg-panel-card shadow-xl">
+        <div className="flex items-center justify-between border-b border-panel-border p-4">
+          <h3 className="text-lg font-bold text-panel-text">Perfil de Usuario</h3>
           <button
             onClick={onClose}
             className="rounded-lg p-2 text-panel-muted transition hover:bg-panel-bg"
@@ -38,7 +40,7 @@ function ProfileModal({ isOpen, onClose, user, onEdit }: ProfileModalProps) {
           </button>
         </div>
         <div className="p-6">
-          <UserCard user={user} onEdit={onEdit} />
+          <UserCard user={user} onEdit={onEdit} onToggleClient={onToggleClient} onToggleCoach={onToggleCoach} />
         </div>
       </div>
     </div>
@@ -255,9 +257,11 @@ interface UserCardProps {
   user: FirestoreUser;
   editHandlers?: Partial<Record<EditableField, () => void>>;
   onEdit?: (field: EditableField, userId: string, currentValue: string | number | undefined) => void;
+  onToggleClient?: (userId: string, currentValue: boolean) => void;
+  onToggleCoach?: (userId: string, currentValue: boolean) => void;
 }
 
-function UserCard({ user, editHandlers, onEdit }: UserCardProps) {
+function UserCard({ user, editHandlers, onEdit, onToggleClient, onToggleCoach }: UserCardProps) {
   // Generate edit handlers from onEdit callback if not provided directly
   const handlers = editHandlers || (onEdit ? {
     email: () => onEdit("email", user.user_id, user.email),
@@ -310,38 +314,97 @@ function UserCard({ user, editHandlers, onEdit }: UserCardProps) {
             value={
               <div className="flex flex-col">
                 <span className="font-semibold tracking-[0.4em] text-panel-text/80">{PASSWORD_PLACEHOLDER}</span>
-                <span className="text-xs text-panel-muted">Las credenciales se administran a través de Firebase Authentication</span>
               </div>
             }
             actionLabel={handlers?.password ? "Editar" : undefined}
             onAction={handlers?.password}
           />
-          <DetailRow
-            label="Nombre"
-            value={user.first_name || "No proporcionado"}
-            actionLabel={handlers?.first_name ? "Editar" : undefined}
-            onAction={handlers?.first_name}
-          />
-          <DetailRow
-            label="Apellido"
-            value={user.last_name || "No proporcionado"}
-            actionLabel={handlers?.last_name ? "Editar" : undefined}
-            onAction={handlers?.last_name}
-          />
-          <DetailRow label="Tipo de Usuario" value={formatUserType(user.user_type)} />
-          <DetailRow
-            label="Edad"
-            value={formatAge(user.age)}
-            actionLabel={handlers?.age ? "Editar" : undefined}
-            onAction={handlers?.age}
-          />
-          <DetailRow
-            label="Peso"
-            value={formatWeight(user.weight)}
-            actionLabel={handlers?.weight ? "Editar" : undefined}
-            onAction={handlers?.weight}
-          />
-          <DetailRow label="Género" value={formatGender(user.gender)} />
+
+          {/* Name Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 border-t border-panel-border">
+            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="block text-xs font-medium text-panel-muted">Nombre</span>
+                  <span className="text-sm text-panel-text">{user.first_name || "No proporcionado"}</span>
+                </div>
+                {handlers?.first_name && (
+                  <button onClick={handlers.first_name} className="text-xs text-panel-primary font-semibold hover:bg-panel-primary/10 px-2 py-1 rounded">Editar</button>
+                )}
+              </div>
+            </div>
+            <div className="px-4 py-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="block text-xs font-medium text-panel-muted">Apellido</span>
+                  <span className="text-sm text-panel-text">{user.last_name || "No proporcionado"}</span>
+                </div>
+                {handlers?.last_name && (
+                  <button onClick={handlers.last_name} className="text-xs text-panel-primary font-semibold hover:bg-panel-primary/10 px-2 py-1 rounded">Editar</button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 border-t border-panel-border">
+            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="block text-xs font-medium text-panel-muted">Edad</span>
+                  <span className="text-sm text-panel-text">{formatAge(user.age)}</span>
+                </div>
+                {handlers?.age && (
+                  <button onClick={handlers.age} className="text-xs text-panel-primary font-semibold hover:bg-panel-primary/10 px-2 py-1 rounded">Editar</button>
+                )}
+              </div>
+            </div>
+            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="block text-xs font-medium text-panel-muted">Peso</span>
+                  <span className="text-sm text-panel-text">{formatWeight(user.weight)}</span>
+                </div>
+                {handlers?.weight && (
+                  <button onClick={handlers.weight} className="text-xs text-panel-primary font-semibold hover:bg-panel-primary/10 px-2 py-1 rounded">Editar</button>
+                )}
+              </div>
+            </div>
+            <div className="px-4 py-2">
+              <div>
+                <span className="block text-xs font-medium text-panel-muted">Género</span>
+                <span className="text-sm text-panel-text">{formatGender(user.gender)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Roles Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 border-t border-panel-border">
+            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border flex items-center justify-between">
+              <div>
+                <span className="block text-xs font-medium text-panel-muted">Tipo Usuario</span>
+                <span className="text-sm text-panel-text">{formatUserType(user.user_type)}</span>
+              </div>
+            </div>
+            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={!!user.isClient}
+                onChange={() => onToggleClient?.(user.user_id, !!user.isClient)}
+                className="size-4 rounded border-panel-border bg-panel-bg text-panel-primary accent-panel-primary focus:ring-panel-primary"
+              />
+              <span className="text-sm text-panel-text">Es Cliente</span>
+            </div>
+            <div className="px-4 py-2 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={!!user.isCoach}
+                onChange={() => onToggleCoach?.(user.user_id, !!user.isCoach)}
+                className="size-4 rounded border-panel-border bg-panel-bg text-panel-primary accent-panel-primary focus:ring-panel-primary"
+              />
+              <span className="text-sm text-panel-text">Es Coach</span>
+            </div>
+          </div>
         </div>
       </div>
     </article>
@@ -449,11 +512,32 @@ export default function AdminPage() {
           await updateAuthEmail(user, value);
         }
       } else if (field === "password") {
-        // Password can only be changed for the current user
+        // Password change logic
         if (user && userId === user.uid) {
+          // Changed by the user themselves
           await updatePassword(user, value);
         } else {
-          throw new Error("Solo puedes cambiar tu propia contraseña");
+          // Changed by admin for another user
+          if (!user) throw new Error("No authenticated user found");
+
+          const token = await getIdToken(user);
+          const response = await fetch("/api/admin/change-password", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              userId,
+              newPassword: value,
+              adminUid: user.uid
+            })
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || "Error updating password");
+          }
         }
       } else if (field === "age" || field === "weight") {
         // Numeric fields
@@ -553,6 +637,46 @@ export default function AdminPage() {
       throw error;
     }
   }, [user?.uid, profileModal.isOpen, profileModal.user?.user_id]);
+
+  const handleToggleClient = useCallback(async (userId: string, currentValue: boolean) => {
+    try {
+      await updateUserField(userId, "isClient", !currentValue);
+      await refreshDirectoryUsers();
+      await refreshUserDetails(userId);
+
+      // Update the profile modal if it's open
+      if (profileModal.isOpen && profileModal.user?.user_id === userId) {
+        const updatedUser = await getUserProfile(userId);
+        setProfileModal({
+          isOpen: true,
+          user: updatedUser,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling client status:", error);
+      throw error;
+    }
+  }, [user?.uid, profileModal.isOpen, profileModal.user?.user_id, refreshDirectoryUsers, refreshUserDetails]);
+
+  const handleToggleCoach = useCallback(async (userId: string, currentValue: boolean) => {
+    try {
+      await updateUserField(userId, "isCoach", !currentValue);
+      await refreshDirectoryUsers();
+      await refreshUserDetails(userId);
+
+      // Update the profile modal if it's open
+      if (profileModal.isOpen && profileModal.user?.user_id === userId) {
+        const updatedUser = await getUserProfile(userId);
+        setProfileModal({
+          isOpen: true,
+          user: updatedUser,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling coach status:", error);
+      throw error;
+    }
+  }, [profileModal.isOpen, profileModal.user?.user_id, refreshDirectoryUsers, refreshUserDetails]);
 
   const profileEditHandlers = useMemo<Partial<Record<EditableField, () => void>>>(() => {
     if (!currentProfile) return {};
@@ -730,6 +854,8 @@ export default function AdminPage() {
         onClose={closeProfileModal}
         user={profileModal.user}
         onEdit={handleEditField}
+        onToggleClient={handleToggleClient}
+        onToggleCoach={handleToggleCoach}
       />
 
       <EditModal
@@ -819,8 +945,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setShowInactive(!showInactive)}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${showInactive
-                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                      : "border border-panel-border text-panel-muted hover:bg-panel-bg"
+                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                    : "border border-panel-border text-panel-muted hover:bg-panel-bg"
                     }`}
                 >
                   {showInactive ? "Ocultar Inactivos" : "Mostrar Inactivos"}
@@ -850,6 +976,7 @@ export default function AdminPage() {
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Nombre</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Apellido</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Email</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-panel-muted">Cliente</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Tipo de Usuario</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-panel-muted">Acciones</th>
                     </tr>
@@ -860,6 +987,9 @@ export default function AdminPage() {
                         <td className="px-4 py-4 text-sm text-panel-text">{entry.first_name || "—"}</td>
                         <td className="px-4 py-4 text-sm text-panel-text">{entry.last_name || "—"}</td>
                         <td className="px-4 py-4 text-sm text-panel-text">{entry.email}</td>
+                        <td className="px-4 py-4 text-center text-sm text-panel-text">
+                          {entry.isClient ? "✅" : ""}
+                        </td>
                         <td className="px-4 py-4">
                           <select
                             value={entry.user_type || ""}

@@ -134,6 +134,19 @@ export default function CursosPage() {
             </div>
 
             <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                {/* Panel Button for Clients/Admins */}
+                {(profile?.isClient || profile?.is_admin) && (
+                    <div className="flex justify-end mb-6">
+                        <Link
+                            href="/panelcliente"
+                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                        >
+                            <span className="material-symbols-outlined">dashboard</span>
+                            Panel
+                        </Link>
+                    </div>
+                )}
+
                 {/* Profile Completion Banner */}
                 {profile && (!profile.age || !profile.height || !profile.weight || !profile.gender) && (
                     <div className="mb-8 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-6">

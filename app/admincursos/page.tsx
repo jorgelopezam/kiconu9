@@ -14,6 +14,7 @@ import {
     getUsersWithCourseAccess,
     getUserProfile,
 } from "@/lib/firestore-helpers";
+import { useTheme } from "@/contexts/ThemeContext";
 import type { Course, CourseAccessLevel, CourseStatus, User } from "@/lib/firestore-schema";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
@@ -21,6 +22,7 @@ import { storage } from "@/lib/firebase";
 export default function AdminCursosPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const { theme } = useTheme();
     const [isAdmin, setIsAdmin] = useState(false);
     const [courses, setCourses] = useState<Course[]>([]);
     const [loadingCourses, setLoadingCourses] = useState(true);
@@ -204,8 +206,8 @@ export default function AdminCursosPage() {
                 title: editTitle.trim(),
                 access_level: editAccessLevel,
                 status: editStatus,
-                thumbnail_url: thumbnailDownloadURL,
-                intro_video_url: introVideoDownloadURL
+                thumbnail_url: thumbnailDownloadURL || null,
+                intro_video_url: introVideoDownloadURL || null
             });
             setShowEditModal(false);
             setSelectedCourse(null);
@@ -353,7 +355,7 @@ export default function AdminCursosPage() {
                                         <td className="px-2 py-2 text-sm text-foreground md:px-4 md:py-3">
                                             <button
                                                 onClick={() => openEditModal(course)}
-                                                className="text-left font-medium text-primary hover:underline"
+                                                className={`text-left font-medium hover:underline ${theme === "dark" ? "text-white" : "text-primary"}`}
                                             >
                                                 {course.title}
                                             </button>

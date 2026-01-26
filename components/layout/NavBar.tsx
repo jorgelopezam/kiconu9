@@ -136,7 +136,7 @@ export function NavBar() {
           )}
           <button
             onClick={toggleTheme}
-            className="flex items-center justify-center rounded-lg border border-sage/40 p-2 text-primary transition hover:bg-desert-sand/20"
+            className={`flex items-center justify-center rounded-lg border border-sage/40 p-2 transition hover:bg-desert-sand/20 ${theme === "dark" ? "text-white" : "text-primary"}`}
             aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
           >
             <span className="material-symbols-outlined text-xl">
@@ -219,7 +219,7 @@ export function NavBar() {
               )}
               <button
                 onClick={toggleTheme}
-                className="flex items-center justify-center rounded-lg border border-sage/40 p-2 text-primary transition hover:bg-desert-sand/20"
+                className={`flex items-center justify-center rounded-lg border border-sage/40 p-2 transition hover:bg-desert-sand/20 ${theme === "dark" ? "text-white" : "text-primary"}`}
                 aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
               >
                 <span className="material-symbols-outlined text-xl">

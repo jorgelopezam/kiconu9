@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserProfile } from "@/lib/firestore-helpers";
 import type { User } from "@/lib/firestore-schema";
@@ -56,18 +57,18 @@ export default function CalendarioPage() {
       const sessionsRef = collection(db, "sessions");
       const q = query(sessionsRef);
       const snapshot = await getDocs(q);
-      
+
       const sessionsData: SessionData[] = [];
       const userIds = new Set<string>();
-      
+
       snapshot.forEach((docItem) => {
         const session = { id: docItem.id, ...docItem.data() } as SessionData;
         sessionsData.push(session);
         userIds.add(session.user_id);
       });
-      
+
       setSessions(sessionsData);
-      
+
       // Fetch user details for all unique user_ids
       const cacheCopy = new Map(userCacheRef.current);
       let cacheUpdated = false;
@@ -240,13 +241,20 @@ export default function CalendarioPage() {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <h1 className="text-4xl font-black tracking-tight text-panel-text">Actividades</h1>
-              <button 
+              <button
                 onClick={() => setIsAddSessionModalOpen(true)}
                 className="flex h-10 items-center justify-center gap-2 overflow-hidden rounded-xl bg-panel-primary px-4 text-sm font-bold leading-normal tracking-wide text-white transition hover:opacity-90"
               >
                 <span className="material-symbols-outlined text-xl">add</span>
                 <span className="truncate">Añadir Sesión</span>
               </button>
+              <Link
+                href="/admindisponibilidad"
+                className="flex h-10 items-center justify-center gap-2 overflow-hidden rounded-xl border border-panel-border bg-panel-card px-4 text-sm font-bold leading-normal tracking-wide text-panel-text transition hover:bg-panel-bg"
+              >
+                <span className="material-symbols-outlined text-xl">calendar_month</span>
+                <span className="truncate">Disponibilidad</span>
+              </Link>
             </div>
 
             <div className="flex px-4 py-3">
@@ -327,33 +335,31 @@ export default function CalendarioPage() {
                 return (
                   <div
                     key={day}
-                    className={`flex min-h-28 flex-col rounded-lg border p-1 text-xs ${
-                      isTodayDay
-                        ? "border-panel-primary bg-panel-primary/10"
-                        : "border-panel-border"
-                    }`}
+                    className={`flex min-h-28 flex-col rounded-lg border p-1 text-xs ${isTodayDay
+                      ? "border-panel-primary bg-panel-primary/10"
+                      : "border-panel-border"
+                      }`}
                   >
                     <span
-                      className={`text-xs ${
-                        isTodayDay ? "font-bold text-panel-primary" : "font-medium text-panel-text"
-                      }`}
+                      className={`text-xs ${isTodayDay ? "font-bold text-panel-primary" : "font-medium text-panel-text"
+                        }`}
                     >
                       {day}
                     </span>
                     <div className="mt-1 space-y-0.5 overflow-y-auto text-xs ">
                       {daySessions.map((session) => {
                         const userData = userCache.get(session.user_id);
-                        const userName = userData 
+                        const userName = userData
                           ? `${userData.first_name} ${userData.last_name}`
                           : "Usuario";
-                        
+
                         let bgColor = "";
                         let textColor = "text-black";
-                        
+
                         if (session.status === "cancelled") {
                           bgColor = "bg-red-500";
                           textColor = "text-white";
-                         
+
                         } else if (session.status === "finished") {
                           bgColor = "bg-blue-500";
                           textColor = "text-white";
@@ -362,7 +368,7 @@ export default function CalendarioPage() {
                         } else {
                           bgColor = "bg-yellow-400";
                         }
-                        
+
                         return (
                           <button
                             key={session.id}

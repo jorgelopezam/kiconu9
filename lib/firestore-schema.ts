@@ -23,6 +23,8 @@ export interface User {
   gender?: "male" | "female" | "other" | "prefer_not_to_say";
   user_type: UserType;  // null means not yet selected (needs to go to payment)
   is_admin: boolean;
+  isClient?: boolean;
+  isCoach?: boolean;
   course_access?: string[]; // Array of course IDs for restricted course access
 }
 
@@ -130,6 +132,23 @@ export interface Meditation {
   created_by: string; // admin user id
 }
 
+// Availability Rules
+export type AvailabilityType = "range" | "periodicity";
+export type AvailabilityStatus = "available" | "unavailable";
+
+export interface SessionAvailability {
+  id: string;
+  user_id: string; // admin user id
+  type: AvailabilityType;
+  status: AvailabilityStatus;
+  start_date: Date;
+  end_date: Date;
+  start_time: string; // "HH:MM" 24h format
+  end_time: string;   // "HH:MM" 24h format
+  days_of_week?: number[]; // 0-6, 0 is Sunday. Required for periodicity
+  created_at: Date;
+}
+
 /**
  * Collection paths
  */
@@ -144,4 +163,5 @@ export const COLLECTIONS = {
   COURSE_SECTIONS: "course_sections",
   COURSE_ITEMS: "course_items",
   MEDITATIONS: "meditations",
+  SESSIONS_AVAILABILITY: "sessionsAvailability",
 } as const;
