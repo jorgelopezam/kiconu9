@@ -5,12 +5,19 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserProfile } from "@/lib/firestore-helpers";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, Timestamp, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp, orderBy } from "firebase/firestore";
 import type { SessionAvailability, AvailabilityType, AvailabilityStatus } from "@/lib/firestore-schema";
 import { COLLECTIONS } from "@/lib/firestore-schema";
 
 const DAY_NAMES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const SHORT_DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleString('es-ES', { month: 'short' }).replace('.', '');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+};
 
 export default function AdminDisponibilidadPage() {
     const { user, loading } = useAuth();
@@ -27,6 +34,7 @@ export default function AdminDisponibilidadPage() {
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("17:00");
     const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]); // Mon-Fri default
+    const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
 
     useEffect(() => {
         const init = async () => {
@@ -75,7 +83,7 @@ export default function AdminDisponibilidadPage() {
         }
     };
 
-    const handleAddRule = async () => {
+    const handleSaveRule = async () => {
         if (!user) return;
 
         try {
@@ -87,8 +95,13 @@ export default function AdminDisponibilidadPage() {
 
             const start = new Date(startDate);
             // For periodicity, End Date is when the rule stops applying.
-            // For range, End Date is the end of the range.
-            const end = new Date(endDate);
+            // For single day unavailability, End Date is same as Start Date
+            let end: Date;
+            if (newRuleType === 'unavailable_range') {
+                end = new Date(startDate);
+            } else {
+                end = new Date(endDate);
+            }
 
             // Basic validation
             if (isNaN(start.getTime()) || isNaN(end.getTime())) {
@@ -96,7 +109,7 @@ export default function AdminDisponibilidadPage() {
                 return;
             }
 
-            const newRule: Omit<SessionAvailability, "id"> = {
+            const ruleData: Omit<SessionAvailability, "id"> = {
                 user_id: user.uid,
                 type,
                 status,
@@ -108,13 +121,48 @@ export default function AdminDisponibilidadPage() {
                 created_at: new Date(),
             };
 
-            await addDoc(collection(db, COLLECTIONS.SESSIONS_AVAILABILITY), newRule);
+            if (editingRuleId) {
+                await updateDoc(doc(db, COLLECTIONS.SESSIONS_AVAILABILITY, editingRuleId), ruleData);
+            } else {
+                await addDoc(collection(db, COLLECTIONS.SESSIONS_AVAILABILITY), ruleData);
+            }
+
             setIsAddModalOpen(false);
+            setEditingRuleId(null);
             fetchRules();
         } catch (error) {
-            console.error("Error adding rule:", error);
+            console.error("Error saving rule:", error);
             alert("Error al guardar la regla");
         }
+    };
+
+    const handleEditRule = (rule: SessionAvailability) => {
+        setEditingRuleId(rule.id);
+
+        // Determine rule type state
+        if (rule.type === 'periodicity' && rule.status === 'available') {
+            setNewRuleType("available_periodicity");
+        } else if (rule.type === 'periodicity' && rule.status === 'unavailable') {
+            setNewRuleType("unavailable_periodicity");
+        } else if (rule.type === 'range' && rule.status === 'unavailable') {
+            setNewRuleType("unavailable_range");
+        } else {
+            // Fallback or handle active 'available_range' if any exist (though option removed from UI)
+            // defaulting to available_periodicity or keeping as is if we had the option
+            setNewRuleType("available_periodicity");
+        }
+
+        setStartDate(rule.start_date.toISOString().split('T')[0]);
+        setEndDate(rule.end_date.toISOString().split('T')[0]);
+        setStartTime(rule.start_time);
+        setEndTime(rule.end_time);
+        if (rule.days_of_week) {
+            setSelectedDays(rule.days_of_week);
+        } else {
+            setSelectedDays([1, 2, 3, 4, 5]);
+        }
+
+        setIsAddModalOpen(true);
     };
 
     const handleDeleteRule = async (ruleId: string) => {
@@ -225,7 +273,16 @@ export default function AdminDisponibilidadPage() {
                         <p className="text-panel-muted">Gestiona tus horarios de coaching</p>
                     </div>
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+                        onClick={() => {
+                            setEditingRuleId(null);
+                            setStartDate("");
+                            setEndDate("");
+                            setStartTime("09:00");
+                            setEndTime("17:00");
+                            setSelectedDays([1, 2, 3, 4, 5]);
+                            setNewRuleType("available_periodicity");
+                            setIsAddModalOpen(true);
+                        }}
                         className="flex items-center gap-2 rounded-xl bg-panel-primary px-4 py-2 text-white font-semibold shadow-lg hover:opacity-90"
                     >
                         <span className="material-symbols-outlined">add</span>
@@ -246,12 +303,20 @@ export default function AdminDisponibilidadPage() {
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {rules.map(rule => (
                                 <div key={rule.id} className={`relative rounded-xl border p-4 shadow-sm ${rule.status === 'unavailable' ? 'border-red-500/20 bg-red-500/5' : 'border-green-500/20 bg-green-500/5'}`}>
-                                    <button
-                                        onClick={() => handleDeleteRule(rule.id)}
-                                        className="absolute top-2 right-2 text-panel-muted hover:text-red-500"
-                                    >
-                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                    </button>
+                                    <div className="absolute top-2 right-2 flex gap-1">
+                                        <button
+                                            onClick={() => handleEditRule(rule)}
+                                            className="p-1 text-panel-muted hover:text-panel-primary transition"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteRule(rule.id)}
+                                            className="p-1 text-panel-muted hover:text-red-500 transition"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
                                     <div className="flex items-center gap-2 mb-2">
                                         <span className={`inline-block size-2 rounded-full ${rule.status === 'unavailable' ? 'bg-red-500' : 'bg-green-500'}`} />
                                         <span className="font-semibold text-panel-text">
@@ -275,7 +340,7 @@ export default function AdminDisponibilidadPage() {
                                         {rule.start_time} - {rule.end_time}
                                     </div>
                                     <div className="text-xs text-panel-muted">
-                                        {rule.start_date.toLocaleDateString()} &rarr; {rule.end_date.toLocaleDateString()}
+                                        {formatDate(rule.start_date)} &rarr; {formatDate(rule.end_date)}
                                     </div>
                                 </div>
                             ))}
@@ -348,7 +413,9 @@ export default function AdminDisponibilidadPage() {
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-lg rounded-2xl bg-panel-card p-6 shadow-xl">
-                        <h3 className="mb-6 text-xl font-bold text-panel-text">Añadir Regla de Disponibilidad</h3>
+                        <h3 className="mb-6 text-xl font-bold text-panel-text">
+                            {editingRuleId ? 'Editar Regla' : 'Añadir Regla de Disponibilidad'}
+                        </h3>
 
                         <div className="mb-6 space-y-3">
                             <label className="flex items-center gap-3 p-3 rounded-lg border border-panel-border hover:bg-panel-bg cursor-pointer">
@@ -365,19 +432,7 @@ export default function AdminDisponibilidadPage() {
                                 </div>
                             </label>
 
-                            <label className="flex items-center gap-3 p-3 rounded-lg border border-panel-border hover:bg-panel-bg cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="ruleType"
-                                    checked={newRuleType === "available_range"}
-                                    onChange={() => setNewRuleType("available_range")}
-                                    className="accent-panel-primary"
-                                />
-                                <div>
-                                    <div className="font-semibold text-panel-text">Rango de Disponibilidad Especifico</div>
-                                    <div className="text-xs text-panel-muted">Ej: Del 3 al 10 de Feb de 10am a 11am</div>
-                                </div>
-                            </label>
+
 
                             <label className="flex items-center gap-3 p-3 rounded-lg border border-panel-border hover:bg-panel-bg cursor-pointer">
                                 <input
@@ -402,8 +457,8 @@ export default function AdminDisponibilidadPage() {
                                     className="accent-red-500"
                                 />
                                 <div>
-                                    <div className="font-semibold text-red-500">Rango de Indisponibilidad</div>
-                                    <div className="text-xs text-panel-muted">Ej: Vacaciones o Días Festivos</div>
+                                    <div className="font-semibold text-red-500">Indisponibilidad un día/hora</div>
+                                    <div className="text-xs text-panel-muted">Ej: Bloquear un día específico o un horario</div>
                                 </div>
                             </label>
                         </div>
@@ -431,7 +486,7 @@ export default function AdminDisponibilidadPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="mb-1 block text-xs font-medium text-panel-muted">Fecha Inicio</label>
+                                    <label className="mb-1 block text-xs font-medium text-panel-muted">{newRuleType === 'unavailable_range' ? 'Fecha' : 'Fecha Inicio'}</label>
                                     <input
                                         type="date"
                                         value={startDate}
@@ -439,15 +494,17 @@ export default function AdminDisponibilidadPage() {
                                         className="w-full rounded-lg border border-panel-border bg-panel-bg px-3 py-2 text-panel-text"
                                     />
                                 </div>
-                                <div>
-                                    <label className="mb-1 block text-xs font-medium text-panel-muted">Fecha Fin</label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full rounded-lg border border-panel-border bg-panel-bg px-3 py-2 text-panel-text"
-                                    />
-                                </div>
+                                {newRuleType !== 'unavailable_range' && (
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-panel-muted">Fecha Fin</label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            className="w-full rounded-lg border border-panel-border bg-panel-bg px-3 py-2 text-panel-text"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -480,10 +537,10 @@ export default function AdminDisponibilidadPage() {
                                 Cancelar
                             </button>
                             <button
-                                onClick={handleAddRule}
+                                onClick={handleSaveRule}
                                 className="rounded-lg bg-panel-primary px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-90"
                             >
-                                Guardar Regla
+                                {editingRuleId ? 'Guardar Cambios' : 'Guardar Regla'}
                             </button>
                         </div>
                     </div>
