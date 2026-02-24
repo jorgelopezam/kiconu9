@@ -451,10 +451,14 @@ export default function CoachingPage() {
         question_text: question.question_text,
         question_type: question.question_type,
         is_open_answer: question.question_type === "open",
-        options: question.options || null,
         status: "pending",
         created_at: Timestamp.now(),
       };
+
+      // Only add options if it's multiple choice and has options
+      if (question.question_type === "multiple_choice" && question.options && question.options.length > 0) {
+        questionData.options = question.options;
+      }
 
       await addDoc(collection(db, COLLECTIONS.COACHING_QUESTIONS), questionData);
 
