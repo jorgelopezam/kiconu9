@@ -365,13 +365,15 @@ export default function CoachingPage() {
   const fetchAvailableQuestions = async () => {
     setLoadingAvailableQuestions(true);
     try {
-      // Get all questionnaires
+      // Get all questionnaires (both active and draft)
       const questionnairesRef = collection(db, COLLECTIONS.QUESTIONNAIRES);
       let q;
       if (viewerProfile?.is_admin) {
-        q = query(questionnairesRef, where("status", "==", "active"));
+        // Admin sees all questionnaires
+        q = query(questionnairesRef, orderBy("created_at", "desc"));
       } else {
-        q = query(questionnairesRef, where("created_by", "==", user!.uid), where("status", "==", "active"));
+        // Coach sees only their own
+        q = query(questionnairesRef, where("created_by", "==", user!.uid), orderBy("created_at", "desc"));
       }
       const questionnairesSnapshot = await getDocs(q);
       const questionnaireIds = questionnairesSnapshot.docs.map(d => d.id);
@@ -381,9 +383,10 @@ export default function CoachingPage() {
         return;
       }
 
-      // Get all questions from those questionnaires
+      // Get all questions from those questionnaires (max 10 at a time due to Firestore "in" limit)
       const questionsRef = collection(db, COLLECTIONS.QUESTIONNAIRE_QUESTIONS);
-      const questionsQuery = query(questionsRef, where("questionnaire_id", "in", questionnaireIds.slice(0, 10)));
+      const idsToQuery = questionnaireIds.slice(0, 10);
+      const questionsQuery = query(questionsRef, where("questionnaire_id", "in", idsToQuery), orderBy("order", "asc"));
       const questionsSnapshot = await getDocs(questionsQuery);
 
       const loaded = questionsSnapshot.docs.map(docSnap => ({
