@@ -474,5 +474,39 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || 
                                (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
     }
+
+    // Coaching Questions collection
+    match /coaching_questions/{questionId} {
+      // Allow read if:
+      // - User is admin
+      // - User is owner (client)
+      // - User is coach assigned to the client
+      allow read: if isAdmin() || 
+                     isOwner(resource.data.user_id) ||
+                     (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
+
+      // Allow create if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      allow create: if (isAdmin() || 
+                       (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(request.resource.data.user_id)).data.assignedCoaches)) &&
+                       request.resource.data.question_text is string &&
+                       request.resource.data.question_type in ['multiple_choice', 'open'] &&
+                       request.resource.data.status in ['pending', 'answered'];
+
+      // Allow update if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      // - User is owner (client) answering the question
+      allow update: if isAdmin() || 
+                       (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches) ||
+                       isOwner(resource.data.user_id);
+
+      // Allow delete if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      allow delete: if isAdmin() || 
+                       (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
+    }
   }
 }
