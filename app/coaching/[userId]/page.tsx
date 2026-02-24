@@ -339,8 +339,7 @@ export default function CoachingPage() {
     try {
       const q = query(
         collection(db, COLLECTIONS.COACHING_QUESTIONS),
-        where("user_id", "==", requestedUserId),
-        orderBy("created_at", "desc")
+        where("user_id", "==", requestedUserId)
       );
       const snapshot = await getDocs(q);
       const loaded = snapshot.docs.map(docSnap => ({
@@ -349,6 +348,14 @@ export default function CoachingPage() {
         created_at: docSnap.data().created_at?.toDate() || new Date(),
         answered_at: docSnap.data().answered_at?.toDate() || undefined,
       })) as CoachingQuestion[];
+      
+      // Sort client-side by created_at descending
+      loaded.sort((a, b) => {
+        const timeA = a.created_at?.getTime() || 0;
+        const timeB = b.created_at?.getTime() || 0;
+        return timeB - timeA;
+      });
+      
       setCoachingQuestions(loaded);
     } catch (err) {
       console.error("Error fetching coaching questions:", err);
