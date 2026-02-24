@@ -212,6 +212,21 @@ export interface AssignedQuestionnaireQuestion {
   order: number;
 }
 
+// Coaching Question - individual questions assigned to a user
+export interface CoachingQuestion {
+  id: string;
+  user_id: string;          // The client
+  assigned_by: string;      // The coach/admin
+  question_text: string;
+  question_type: QuestionType;
+  options?: string[];       // For multiple_choice
+  is_open_answer: boolean;  // true = open answer, false = multiple choice
+  status: "pending" | "answered";
+  answer?: string;          // User's answer (text for open, selected option for multiple)
+  created_at: Date;
+  answered_at?: Date;
+}
+
 /**
  * Collection paths
  */
@@ -232,5 +247,6 @@ export const COLLECTIONS = {
   QUESTIONNAIRE_QUESTIONS: "questionnaire_questions",
   ASSIGNED_QUESTIONNAIRES: "assigned_questionnaires",
   ASSIGNED_QUESTIONNAIRE_QUESTIONS: "assigned_questionnaire_questions",
+  COACHING_QUESTIONS: "coaching_questions",
 } as const;
 

@@ -26,8 +26,10 @@ import type {
   AssignedQuestionnaireQuestion,
   Questionnaire,
   QuestionnaireQuestion,
-  QuestionType
+  QuestionType,
+  CoachingQuestion
 } from "@/lib/firestore-schema";
+import { COLLECTIONS } from "@/lib/firestore-schema";
 
 type SessionRecord = {
   id: string;
@@ -115,6 +117,17 @@ export default function CoachingPage() {
     age: "" as string,
     weight: "" as string,
   });
+
+  // Coaching Questions state
+  const [coachingQuestions, setCoachingQuestions] = useState<CoachingQuestion[]>([]);
+  const [isAddQuestionDialogOpen, setIsAddQuestionDialogOpen] = useState(false);
+  const [selectFromExistingOpen, setSelectFromExistingOpen] = useState(false);
+  const [availableQuestions, setAvailableQuestions] = useState<QuestionnaireQuestion[]>([]);
+  const [loadingAvailableQuestions, setLoadingAvailableQuestions] = useState(false);
+  const [newQuestionText, setNewQuestionText] = useState("");
+  const [newQuestionType, setNewQuestionType] = useState<QuestionType>("open");
+  const [newQuestionOptions, setNewQuestionOptions] = useState<string[]>([""]);
+  const [savingQuestion, setSavingQuestion] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -318,6 +331,170 @@ export default function CoachingPage() {
   }, [courses, targetProfile]);
 
   const hasKiconuAccess = targetProfile?.user_type === "kiconu" || targetProfile?.user_type === "premium";
+
+  // Fetch coaching questions
+  const fetchCoachingQuestions = useCallback(async () => {
+    if (!requestedUserId) return;
+
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.COACHING_QUESTIONS),
+        where("user_id", "==", requestedUserId),
+        orderBy("created_at", "desc")
+      );
+      const snapshot = await getDocs(q);
+      const loaded = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+        created_at: docSnap.data().created_at?.toDate() || new Date(),
+        answered_at: docSnap.data().answered_at?.toDate() || undefined,
+      })) as CoachingQuestion[];
+      setCoachingQuestions(loaded);
+    } catch (err) {
+      console.error("Error fetching coaching questions:", err);
+    }
+  }, [requestedUserId]);
+
+  useEffect(() => {
+    if (user && requestedUserId && (viewerProfile?.is_admin || viewerProfile?.isCoach)) {
+      fetchCoachingQuestions();
+    }
+  }, [user, requestedUserId, viewerProfile, fetchCoachingQuestions]);
+
+  // Fetch available questions from seguimientos
+  const fetchAvailableQuestions = async () => {
+    setLoadingAvailableQuestions(true);
+    try {
+      // Get all questionnaires
+      const questionnairesRef = collection(db, COLLECTIONS.QUESTIONNAIRES);
+      let q;
+      if (viewerProfile?.is_admin) {
+        q = query(questionnairesRef, where("status", "==", "active"));
+      } else {
+        q = query(questionnairesRef, where("created_by", "==", user!.uid), where("status", "==", "active"));
+      }
+      const questionnairesSnapshot = await getDocs(q);
+      const questionnaireIds = questionnairesSnapshot.docs.map(d => d.id);
+
+      if (questionnaireIds.length === 0) {
+        setAvailableQuestions([]);
+        return;
+      }
+
+      // Get all questions from those questionnaires
+      const questionsRef = collection(db, COLLECTIONS.QUESTIONNAIRE_QUESTIONS);
+      const questionsQuery = query(questionsRef, where("questionnaire_id", "in", questionnaireIds.slice(0, 10)));
+      const questionsSnapshot = await getDocs(questionsQuery);
+
+      const loaded = questionsSnapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+        created_at: docSnap.data().created_at?.toDate() || new Date(),
+      })) as QuestionnaireQuestion[];
+
+      setAvailableQuestions(loaded);
+    } catch (err) {
+      console.error("Error fetching available questions:", err);
+    } finally {
+      setLoadingAvailableQuestions(false);
+    }
+  };
+
+  // Add coaching question
+  const handleAddCoachingQuestion = async () => {
+    if (!newQuestionText.trim() || !requestedUserId || !user) return;
+
+    setSavingQuestion(true);
+    try {
+      const questionData: Record<string, unknown> = {
+        user_id: requestedUserId,
+        assigned_by: user.uid,
+        question_text: newQuestionText.trim(),
+        question_type: newQuestionType,
+        is_open_answer: newQuestionType === "open",
+        status: "pending",
+        created_at: Timestamp.now(),
+      };
+
+      if (newQuestionType === "multiple_choice") {
+        questionData.options = newQuestionOptions.filter(opt => opt.trim() !== "");
+      }
+
+      await addDoc(collection(db, COLLECTIONS.COACHING_QUESTIONS), questionData);
+
+      // Reset and close
+      setNewQuestionText("");
+      setNewQuestionType("open");
+      setNewQuestionOptions([""]);
+      setIsAddQuestionDialogOpen(false);
+      await fetchCoachingQuestions();
+    } catch (err) {
+      console.error("Error adding coaching question:", err);
+      alert("Error al agregar la pregunta.");
+    } finally {
+      setSavingQuestion(false);
+    }
+  };
+
+  // Select existing question
+  const handleSelectExistingQuestion = async (question: QuestionnaireQuestion) => {
+    if (!requestedUserId || !user) return;
+
+    setSavingQuestion(true);
+    try {
+      const questionData: Record<string, unknown> = {
+        user_id: requestedUserId,
+        assigned_by: user.uid,
+        question_text: question.question_text,
+        question_type: question.question_type,
+        is_open_answer: question.question_type === "open",
+        options: question.options || null,
+        status: "pending",
+        created_at: Timestamp.now(),
+      };
+
+      await addDoc(collection(db, COLLECTIONS.COACHING_QUESTIONS), questionData);
+
+      setSelectFromExistingOpen(false);
+      await fetchCoachingQuestions();
+    } catch (err) {
+      console.error("Error selecting question:", err);
+      alert("Error al seleccionar la pregunta.");
+    } finally {
+      setSavingQuestion(false);
+    }
+  };
+
+  // Delete coaching question
+  const handleDeleteCoachingQuestion = async (questionId: string) => {
+    if (!confirm("¿Eliminar esta pregunta?")) return;
+
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.COACHING_QUESTIONS, questionId));
+      await fetchCoachingQuestions();
+    } catch (err) {
+      console.error("Error deleting question:", err);
+    }
+  };
+
+  // Add option for multiple choice
+  const handleAddOption = () => {
+    setNewQuestionOptions(prev => [...prev, ""]);
+  };
+
+  // Update option
+  const handleUpdateOption = (index: number, value: string) => {
+    setNewQuestionOptions(prev => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  // Remove option
+  const handleRemoveOption = (index: number) => {
+    setNewQuestionOptions(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleOpenAccessDialog = () => {
     if (!targetProfile) return;
@@ -742,6 +919,57 @@ export default function CoachingPage() {
             ))}
             {!hasKiconuAccess && accessibleCourses.length === 0 && (
               <p className="text-xs text-panel-muted italic">Sin contenido autorizado</p>
+            )}
+          </div>
+        </section>
+
+        {/* Seguimientos Card */}
+        <section className="rounded-2xl border border-panel-border bg-panel-card p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-panel-text">Seguimientos</h2>
+            <button
+              type="button"
+              onClick={() => setIsAddQuestionDialogOpen(true)}
+              className="inline-flex items-center gap-1 rounded-lg border border-panel-border bg-panel-bg px-2 py-1 text-xs font-medium text-panel-text transition hover:bg-panel-border"
+            >
+              <span className="material-symbols-outlined text-sm">add</span>
+              Agregar Pregunta
+            </button>
+          </div>
+          <div className="space-y-2">
+            {coachingQuestions.length === 0 ? (
+              <p className="text-xs text-panel-muted italic py-2">Sin preguntas de seguimiento</p>
+            ) : (
+              coachingQuestions.map((q) => (
+                <div
+                  key={q.id}
+                  className="flex items-start gap-3 rounded-lg border border-panel-border bg-panel-bg p-2"
+                >
+                  <span className={`material-symbols-outlined text-base mt-0.5 ${q.question_type === "open" ? "text-blue-500" : "text-green-500"}`}>
+                    {q.question_type === "open" ? "edit_note" : "check_box"}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-panel-text truncate">{q.question_text}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${q.status === "pending" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"}`}>
+                        {q.status === "pending" ? "Pendiente" : "Respondida"}
+                      </span>
+                      {q.question_type === "multiple_choice" && q.options && (
+                        <span className="text-[10px] text-panel-muted">
+                          {q.options.length} opciones
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteCoachingQuestion(q.id)}
+                    className="p-1 text-panel-muted hover:text-red-500 rounded"
+                    title="Eliminar"
+                  >
+                    <span className="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </div>
+              ))
             )}
           </div>
         </section>
@@ -1428,6 +1656,230 @@ export default function CoachingPage() {
           </div>
         )
       }
+
+      {/* Add Coaching Question Dialog */}
+      {isAddQuestionDialogOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-panel-border bg-panel-card shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="border-b border-panel-border p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-panel-text">Agregar Pregunta</h3>
+                <button
+                  onClick={() => {
+                    setIsAddQuestionDialogOpen(false);
+                    setNewQuestionText("");
+                    setNewQuestionType("open");
+                    setNewQuestionOptions([""]);
+                  }}
+                  className="rounded-lg p-1 text-panel-muted hover:text-panel-text"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Option to select from existing */}
+              <button
+                onClick={() => {
+                  fetchAvailableQuestions();
+                  setSelectFromExistingOpen(true);
+                  setIsAddQuestionDialogOpen(false);
+                }}
+                className="w-full flex items-center gap-3 rounded-xl border border-dashed border-panel-border p-4 text-left hover:border-panel-primary hover:bg-panel-primary/5 transition"
+              >
+                <span className="material-symbols-outlined text-2xl text-panel-primary">library_books</span>
+                <div>
+                  <p className="font-medium text-panel-text">Seleccionar de Seguimientos</p>
+                  <p className="text-xs text-panel-muted">Elegir una pregunta existente</p>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-panel-border"></div>
+                <span className="text-xs text-panel-muted">o crear nueva</span>
+                <div className="flex-1 h-px bg-panel-border"></div>
+              </div>
+
+              {/* Create new question */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-panel-text">Pregunta</label>
+                <textarea
+                  value={newQuestionText}
+                  onChange={(e) => setNewQuestionText(e.target.value)}
+                  placeholder="Escribe la pregunta..."
+                  rows={3}
+                  className="w-full rounded-xl border border-panel-border bg-panel-bg px-4 py-3 text-panel-text placeholder:text-panel-muted focus:border-panel-primary focus:outline-none"
+                />
+              </div>
+
+              {/* Question type */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-panel-text">Tipo de respuesta</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setNewQuestionType("open")}
+                    className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition ${newQuestionType === "open"
+                      ? "border-panel-primary bg-panel-primary/10 text-panel-primary"
+                      : "border-panel-border text-panel-muted hover:border-panel-primary/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined mb-1 block text-2xl">edit_note</span>
+                    Respuesta abierta
+                  </button>
+                  <button
+                    onClick={() => setNewQuestionType("multiple_choice")}
+                    className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition ${newQuestionType === "multiple_choice"
+                      ? "border-panel-primary bg-panel-primary/10 text-panel-primary"
+                      : "border-panel-border text-panel-muted hover:border-panel-primary/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined mb-1 block text-2xl">check_box</span>
+                    Opción múltiple
+                  </button>
+                </div>
+              </div>
+
+              {/* Options for multiple choice */}
+              {newQuestionType === "multiple_choice" && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-panel-text">Opciones</label>
+                  <div className="space-y-2">
+                    {newQuestionOptions.map((opt, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={opt}
+                          onChange={(e) => handleUpdateOption(idx, e.target.value)}
+                          placeholder={`Opción ${idx + 1}`}
+                          className="flex-1 rounded-lg border border-panel-border bg-panel-bg px-3 py-2 text-sm text-panel-text placeholder:text-panel-muted focus:border-panel-primary focus:outline-none"
+                        />
+                        {newQuestionOptions.length > 1 && (
+                          <button
+                            onClick={() => handleRemoveOption(idx)}
+                            className="flex size-8 items-center justify-center rounded-full text-panel-muted hover:bg-red-100 hover:text-red-500 transition"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleAddOption}
+                    className="mt-2 flex items-center gap-1 text-sm font-medium text-panel-primary hover:underline"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    Agregar opción
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-panel-border p-4">
+              <button
+                onClick={() => {
+                  setIsAddQuestionDialogOpen(false);
+                  setNewQuestionText("");
+                  setNewQuestionType("open");
+                  setNewQuestionOptions([""]);
+                }}
+                className="rounded-lg border border-panel-border px-4 py-2 text-sm font-medium text-panel-text hover:bg-panel-bg transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAddCoachingQuestion}
+                disabled={!newQuestionText.trim() || savingQuestion}
+                className="rounded-lg bg-panel-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition disabled:opacity-50"
+              >
+                {savingQuestion ? "Guardando..." : "Agregar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Select from Existing Questions Dialog */}
+      {selectFromExistingOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-panel-border bg-panel-card shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="border-b border-panel-border p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-panel-text">Seleccionar Pregunta</h3>
+                <button
+                  onClick={() => setSelectFromExistingOpen(false)}
+                  className="rounded-lg p-1 text-panel-muted hover:text-panel-text"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4">
+              {loadingAvailableQuestions ? (
+                <div className="flex justify-center py-8 text-panel-muted">
+                  <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                </div>
+              ) : availableQuestions.length === 0 ? (
+                <div className="py-8 text-center">
+                  <span className="material-symbols-outlined text-3xl text-panel-muted/50 mb-2">search_off</span>
+                  <p className="text-sm text-panel-muted">No hay preguntas disponibles en los seguimientos.</p>
+                  <button
+                    onClick={() => {
+                      setSelectFromExistingOpen(false);
+                      setIsAddQuestionDialogOpen(true);
+                    }}
+                    className="mt-3 text-sm font-medium text-panel-primary hover:underline"
+                  >
+                    Crear nueva pregunta
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {availableQuestions.map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => handleSelectExistingQuestion(q)}
+                      disabled={savingQuestion}
+                      className="w-full flex items-start gap-3 rounded-xl border border-panel-border p-3 text-left hover:border-panel-primary hover:bg-panel-primary/5 transition disabled:opacity-50"
+                    >
+                      <span className={`material-symbols-outlined text-lg mt-0.5 ${q.question_type === "open" ? "text-blue-500" : "text-green-500"}`}>
+                        {q.question_type === "open" ? "edit_note" : "check_box"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-panel-text line-clamp-2">{q.question_text}</p>
+                        {q.question_type === "multiple_choice" && q.options && (
+                          <p className="text-xs text-panel-muted mt-1">{q.options.length} opciones</p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between border-t border-panel-border p-4">
+              <button
+                onClick={() => {
+                  setSelectFromExistingOpen(false);
+                  setIsAddQuestionDialogOpen(true);
+                }}
+                className="rounded-lg border border-panel-border px-4 py-2 text-sm font-medium text-panel-text hover:bg-panel-bg transition"
+              >
+                Crear Nueva
+              </button>
+              <button
+                onClick={() => setSelectFromExistingOpen(false)}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-panel-text hover:bg-panel-bg transition"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 }
