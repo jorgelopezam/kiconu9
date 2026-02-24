@@ -135,7 +135,7 @@ export default function CursosPage() {
 
             <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
                 {/* Panel Button for Clients/Admins */}
-                {(profile?.isClient || profile?.is_admin) && (
+                {((!profile?.isCoach && profile?.user_type) || profile?.is_admin) && (
                     <div className="flex justify-end mb-6">
                         <Link
                             href="/panelcliente"
