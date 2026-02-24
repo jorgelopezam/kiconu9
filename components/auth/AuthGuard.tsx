@@ -8,8 +8,7 @@ const ADMIN_ROUTES = [
     "/admincursos",
     "/adminvideos",
     "/adminusuarios",
-    "/marketing",
-    "/panelcoach"
+    "/marketing"
 ];
 
 export function AuthGuard() {
@@ -41,7 +40,15 @@ export function AuthGuard() {
                     }
                 }
 
-                // 3. Check for admin route access
+                // 3. Check for coach panel access
+                if (pathname.startsWith("/panelcoach")) {
+                    if (!userProfile.is_admin && !userProfile.isCoach) {
+                        router.push("/cursos");
+                        return;
+                    }
+                }
+
+                // 4. Check for admin route access
                 const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route));
                 if (isAdminRoute && !userProfile.is_admin) {
                     router.push("/cursos");

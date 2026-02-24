@@ -34,8 +34,11 @@ export default function Home() {
           // Plan selected but missing registration details
           router.push("/register");
         } else {
-          // Redirect based on user type
-          if (profile.user_type === "base") {
+          // Redirect based on user role and type
+          // Coach users get their dedicated panel
+          if (profile.isCoach) {
+            router.push("/panelcoach");
+          } else if (profile.user_type === "base") {
             router.push("/cursos");
           } else {
             // kiconu and premium users go to panel

@@ -23,8 +23,9 @@ export interface User {
   gender?: "male" | "female" | "other" | "prefer_not_to_say";
   user_type: UserType;  // null means not yet selected (needs to go to payment)
   is_admin: boolean;
-  isClient?: boolean;
+  assignedCoaches?: string[]; // Array of coach user IDs assigned to this user
   isCoach?: boolean;
+  color?: string; // Hex color code or Tailwind class for coach identification
   course_access?: string[]; // Array of course IDs for restricted course access
 }
 
@@ -132,6 +133,25 @@ export interface Meditation {
   created_by: string; // admin user id
 }
 
+// Kiconu Program Content types
+export type KiconuContentType = "image" | "audio" | "video" | "document";
+
+export interface KiconuContent {
+  id: string;
+  title: string;
+  description?: string;
+  type: KiconuContentType;
+  phase: 1 | 2 | 3;
+  order: number;
+  file_url: string;           // Firebase Storage URL for image/audio/document
+  mux_playback_id?: string;   // For videos
+  mux_asset_id?: string;      // For videos
+  thumbnail_url?: string;     // For videos
+  duration?: number;          // For videos/audio in seconds
+  created_at: Date;
+  created_by: string;         // admin user id
+}
+
 // Availability Rules
 export type AvailabilityType = "range" | "periodicity";
 export type AvailabilityStatus = "available" | "unavailable";
@@ -149,6 +169,49 @@ export interface SessionAvailability {
   created_at: Date;
 }
 
+// Questionnaire types
+export type QuestionType = "multiple_choice" | "open";
+export type QuestionnaireStatus = "active" | "draft";
+
+export interface Questionnaire {
+  id: string;
+  title: string;
+  created_by: string;       // user_id of coach/admin who created
+  created_at: Date;
+  updated_at: Date;
+  status: QuestionnaireStatus;
+}
+
+export interface QuestionnaireQuestion {
+  id: string;
+  questionnaire_id: string;
+  question_text: string;
+  question_type: QuestionType;
+  options?: string[];       // Only for multiple_choice
+  order: number;
+  created_at: Date;
+}
+
+export interface AssignedQuestionnaire {
+  id: string;
+  user_id: string;        // The client
+  assigned_by: string;    // The coach
+  title: string;
+  status: "pending" | "completed";
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface AssignedQuestionnaireQuestion {
+  id: string;
+  assigned_questionnaire_id: string;
+  user_id: string;        // Denormalized for security rules
+  question_text: string;
+  question_type: QuestionType;
+  options?: string[];
+  order: number;
+}
+
 /**
  * Collection paths
  */
@@ -163,5 +226,11 @@ export const COLLECTIONS = {
   COURSE_SECTIONS: "course_sections",
   COURSE_ITEMS: "course_items",
   MEDITATIONS: "meditations",
+  KICONU_CONTENT: "kiconu_content",
   SESSIONS_AVAILABILITY: "sessionsAvailability",
+  QUESTIONNAIRES: "questionnaires",
+  QUESTIONNAIRE_QUESTIONS: "questionnaire_questions",
+  ASSIGNED_QUESTIONNAIRES: "assigned_questionnaires",
+  ASSIGNED_QUESTIONNAIRE_QUESTIONS: "assigned_questionnaire_questions",
 } as const;
+

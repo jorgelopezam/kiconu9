@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 
 import { LogoMark } from "../common/LogoMark";
 import { LoginModal } from "../auth/LoginModal";
@@ -14,6 +14,7 @@ import { getUserProfile } from "@/lib/firestore-helpers";
 // User types for admin simulation
 const USER_TYPES = [
   { id: "admin", label: "Admin", icon: "shield_person" },
+  { id: "coach", label: "Coach", icon: "sports" },
   { id: "premium", label: "Premium", icon: "star" },
   { id: "kiconu", label: "Kiconu", icon: "verified" },
   { id: "base", label: "Base", icon: "person" },
@@ -29,7 +30,7 @@ export function NavBar() {
     setViewAsType(typeId);
     setUserTypeDropdownOpen(false);
 
-    if (typeId === "admin") {
+    if (typeId === "admin" || typeId === "coach") {
       router.push("/panelcoach");
     } else if (typeId === "base") {
       router.push("/cursos");
@@ -44,15 +45,20 @@ export function NavBar() {
   const { user, userProfile, logout, isLoginModalOpen, openLoginModal, closeLoginModal, isRegisterModalOpen, openRegisterModal, closeRegisterModal } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
 
   // Determine effective admin status based on view type
   const effectiveIsAdmin = isAdmin && viewAsType === "admin";
-  const effectiveUserType = isAdmin ? viewAsType : (userType as UserType);
+  const effectiveIsCoach = (isAdmin || isCoach) && viewAsType === "coach";
+  const effectiveUserType = (isAdmin || isCoach) ? viewAsType : (userType as UserType);
 
   // Determine dashboard link based on user type
   const getDashboardLink = () => {
     if (!user) return "/";
-    if (effectiveIsAdmin) return "/panelcoach";
+    // Actual coach users (not admin simulation)
+    if (isCoach) return "/panelcoach";
+    // Admin simulation
+    if (effectiveIsAdmin || effectiveIsCoach) return "/panelcoach";
     if (effectiveUserType === "base") return "/cursos";
     return "/panel";
   };
@@ -79,13 +85,36 @@ export function NavBar() {
   useEffect(() => {
     if (!user || !userProfile) {
       setIsAdmin(false);
+      setIsCoach(false);
       setUserType(null);
       return;
     }
 
     setIsAdmin(userProfile.is_admin);
+    setIsCoach(!!userProfile.isCoach);
     setUserType(userProfile.user_type || null);
-  }, [user, userProfile]);
+
+    // Set initial view type based on role
+    // If user is a coach but NOT an admin, default to "coach" view
+    // (Otherwise it defaults to "admin" which is wrong for non-admin coaches)
+    if (userProfile.isCoach && !userProfile.is_admin && viewAsType === "admin") {
+      setViewAsType("coach");
+    }
+  }, [user, userProfile, viewAsType]);
+
+  // Filter available user types based on role
+  const availableUserTypes = useMemo<(typeof USER_TYPES)[number][]>(() => {
+    if (isAdmin) return [...USER_TYPES];
+    if (isCoach) {
+      const types: (typeof USER_TYPES)[number][] = [USER_TYPES.find(t => t.id === "coach")!];
+      if (userType) {
+        const userTypeObj = USER_TYPES.find(t => t.id === userType);
+        if (userTypeObj) types.push(userTypeObj);
+      }
+      return types;
+    }
+    return [];
+  }, [isAdmin, isCoach, userType]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-sage/20 bg-surface/80 backdrop-blur-md">
@@ -179,12 +208,15 @@ export function NavBar() {
         <div className="hidden md:block">
           {user ? (
             <div className="relative flex items-center gap-3">
-              {/* User type toggle for admins */}
-              {isAdmin && (
+              {/* User type toggle for admins and coaches */}
+              {(isAdmin || isCoach) && (
                 <div className="relative">
                   <button
                     onClick={() => setUserTypeDropdownOpen(!userTypeDropdownOpen)}
-                    className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
+                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition ${isCoach && !isAdmin
+                      ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 dark:text-foreground"
+                      : "border-amber-500/40 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+                      }`}
                     aria-label="Select user type to view as"
                   >
                     <span className="material-symbols-outlined text-lg">
@@ -197,12 +229,12 @@ export function NavBar() {
                   </button>
                   {userTypeDropdownOpen && (
                     <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-xl border border-sage/30 bg-surface shadow-lg">
-                      {USER_TYPES.map((type) => (
+                      {availableUserTypes.map((type: (typeof USER_TYPES)[number]) => (
                         <button
                           key={type.id}
                           onClick={() => handleTypeChange(type.id)}
                           className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium transition hover:bg-desert-sand/20 ${viewAsType === type.id
-                            ? "bg-primary/10 text-primary"
+                            ? "bg-primary/10 text-primary dark:text-foreground"
                             : "text-foreground"
                             } `}
                         >
@@ -239,7 +271,7 @@ export function NavBar() {
 
               {dropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-sage/30 bg-surface shadow-lg">
-                  {effectiveUserType !== "admin" ? (
+                  {effectiveUserType !== "admin" && effectiveUserType !== "coach" ? (
                     <>
                       <Link
                         href={effectiveUserType === "base" ? "/payment" : "/panel"}
@@ -279,9 +311,8 @@ export function NavBar() {
                         <span className="material-symbols-outlined text-lg">self_improvement</span>
                         Meditar
                       </Link>
-                      {/* Videos might belong here for users, but currently guarded by effectiveIsAdmin */}
                     </>
-                  ) : (
+                  ) : effectiveIsCoach ? (
                     <>
                       <Link
                         href="/panelcoach"
@@ -292,13 +323,16 @@ export function NavBar() {
                         Panel Coach
                       </Link>
                       <Link
-                        href="/calendario"
+                        href="/adminseguimientos"
                         className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <span className="material-symbols-outlined text-lg">calendar_month</span>
-                        Calendario
+                        <span className="material-symbols-outlined text-lg">quiz</span>
+                        Seguimientos
                       </Link>
+                    </>
+                  ) : (
+                    <>
                       <Link
                         href="/adminusuarios"
                         className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
@@ -307,42 +341,70 @@ export function NavBar() {
                         <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
                         Admin Usuarios
                       </Link>
-                      {effectiveIsAdmin && (
-                        <>
-                          <Link
-                            href="/adminvideos"
-                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                            onClick={() => setDropdownOpen(false)}
-                          >
-                            <span className="material-symbols-outlined text-lg">video_library</span>
-                            Admin Videos
-                          </Link>
-                          <Link
-                            href="/admincursos"
-                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                            onClick={() => setDropdownOpen(false)}
-                          >
-                            <span className="material-symbols-outlined text-lg">school</span>
-                            Admin Cursos
-                          </Link>
-                          <Link
-                            href="/adminmeditaciones"
-                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                            onClick={() => setDropdownOpen(false)}
-                          >
-                            <span className="material-symbols-outlined text-lg">self_improvement</span>
-                            Admin Meditaciones
-                          </Link>
-                          <Link
-                            href="/marketing"
-                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
-                            onClick={() => setDropdownOpen(false)}
-                          >
-                            <span className="material-symbols-outlined text-lg">campaign</span>
-                            Marketing
-                          </Link>
-                        </>
-                      )}
+                      <Link
+                        href="/admincoaches"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">sports</span>
+                        Admin Coaches
+                      </Link>
+                      <Link
+                        href="/calendario"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">calendar_month</span>
+                        Calendario
+                      </Link>
+                      <Link
+                        href="/adminkiconucontenido"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">space_dashboard</span>
+                        Programa Kiconu
+                      </Link>
+                      <Link
+                        href="/adminvideos"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">video_library</span>
+                        Admin Videos
+                      </Link>
+                      <Link
+                        href="/admincursos"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">school</span>
+                        Admin Cursos
+                      </Link>
+                      <Link
+                        href="/adminmeditaciones"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">self_improvement</span>
+                        Admin Meditaciones
+                      </Link>
+                      <Link
+                        href="/marketing"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">campaign</span>
+                        Marketing
+                      </Link>
+                      <Link
+                        href="/adminseguimientos"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-desert-sand/20"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <span className="material-symbols-outlined text-lg">quiz</span>
+                        Seguimientos
+                      </Link>
                     </>
                   )}
                   <Link
@@ -407,7 +469,34 @@ export function NavBar() {
           <nav className="grid grid-cols-2 gap-x-4 gap-y-2 py-4" aria-label="Mobile navigation">
             {user && (
               <>
-                {effectiveUserType !== "admin" ? (
+                {/* Mobile User Type Selector */}
+                {(isAdmin || isCoach) && (
+                  <div className="col-span-2 mb-4">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ver como:</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        {availableUserTypes.map((type: (typeof USER_TYPES)[number]) => (
+                          <button
+                            key={type.id}
+                            onClick={() => {
+                              handleTypeChange(type.id);
+                              // Don't close menu immediately to let user see the change
+                            }}
+                            className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${viewAsType === type.id
+                              ? "border-primary bg-primary/10 text-primary dark:text-foreground"
+                              : "border-sage/40 bg-surface text-muted-foreground hover:bg-desert-sand/10"
+                              }`}
+                          >
+                            <span className="material-symbols-outlined text-lg">{type.icon}</span>
+                            {type.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="my-4 h-px bg-sage/20" />
+                  </div>
+                )}
+                {effectiveUserType !== "admin" && effectiveUserType !== "coach" ? (
                   <>
                     <Link
                       href={effectiveUserType === "base" ? "/payment" : "/panel"}
@@ -448,7 +537,7 @@ export function NavBar() {
                       Meditar
                     </Link>
                   </>
-                ) : (
+                ) : effectiveIsCoach ? (
                   <>
                     <Link
                       href="/panelcoach"
@@ -459,13 +548,16 @@ export function NavBar() {
                       Panel Coach
                     </Link>
                     <Link
-                      href="/calendario"
+                      href="/adminseguimientos"
                       className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
                       onClick={closeMenu}
                     >
-                      <span className="material-symbols-outlined text-lg">calendar_month</span>
-                      Calendario
+                      <span className="material-symbols-outlined text-lg">quiz</span>
+                      Seguimientos
                     </Link>
+                  </>
+                ) : (
+                  <>
                     <Link
                       href="/adminusuarios"
                       className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
@@ -474,42 +566,70 @@ export function NavBar() {
                       <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
                       Admin Usuarios
                     </Link>
-                    {effectiveIsAdmin && (
-                      <>
-                        <Link
-                          href="/adminvideos"
-                          className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
-                          onClick={closeMenu}
-                        >
-                          <span className="material-symbols-outlined text-lg">video_library</span>
-                          Admin Videos
-                        </Link>
-                        <Link
-                          href="/admincursos"
-                          className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
-                          onClick={closeMenu}
-                        >
-                          <span className="material-symbols-outlined text-lg">school</span>
-                          Admin Cursos
-                        </Link>
-                        <Link
-                          href="/adminmeditaciones"
-                          className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
-                          onClick={closeMenu}
-                        >
-                          <span className="material-symbols-outlined text-lg">self_improvement</span>
-                          Admin Meditaciones
-                        </Link>
-                        <Link
-                          href="/marketing"
-                          className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
-                          onClick={closeMenu}
-                        >
-                          <span className="material-symbols-outlined text-lg">campaign</span>
-                          Marketing
-                        </Link>
-                      </>
-                    )}
+                    <Link
+                      href="/admincoaches"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">sports</span>
+                      Admin Coaches
+                    </Link>
+                    <Link
+                      href="/calendario"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">calendar_month</span>
+                      Calendario
+                    </Link>
+                    <Link
+                      href="/adminkiconucontenido"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">space_dashboard</span>
+                      Programa Kiconu
+                    </Link>
+                    <Link
+                      href="/adminvideos"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">video_library</span>
+                      Admin Videos
+                    </Link>
+                    <Link
+                      href="/admincursos"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">school</span>
+                      Admin Cursos
+                    </Link>
+                    <Link
+                      href="/adminmeditaciones"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">self_improvement</span>
+                      Admin Meditaciones
+                    </Link>
+                    <Link
+                      href="/marketing"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">campaign</span>
+                      Marketing
+                    </Link>
+                    <Link
+                      href="/adminseguimientos"
+                      className="flex items-center gap-2 rounded-lg border border-sage/20 bg-surface px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-desert-sand/10 hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      <span className="material-symbols-outlined text-lg">quiz</span>
+                      Seguimientos
+                    </Link>
                   </>
                 )}
               </>

@@ -45,7 +45,7 @@ export default function AdminDisponibilidadPage() {
             }
 
             const profile = await getUserProfile(user.uid);
-            if (!profile?.is_admin) {
+            if (!profile?.is_admin && !profile?.isCoach) {
                 router.push("/panel");
                 return;
             }

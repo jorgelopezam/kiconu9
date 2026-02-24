@@ -18,7 +18,9 @@ type SessionData = {
   time: string;
   duration: number;
   status: string;
-  coach: "Nutricion" | "Transpersonal";
+  coach: string;
+  coach_user_id?: string;
+  scheduled_by_coach?: string;
   stage: string;
   title: string;
 };
@@ -40,6 +42,7 @@ export default function CalendarioPage() {
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [userCache, setUserCache] = useState<Map<string, UserData>>(() => new Map());
   const userCacheRef = useRef(userCache);
+  const [coachColors, setCoachColors] = useState<Map<string, string>>(new Map());
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<SessionData | null>(null);
@@ -68,6 +71,29 @@ export default function CalendarioPage() {
       });
 
       setSessions(sessionsData);
+
+      // Fetch coach colors
+      const coachIds = new Set<string>();
+      sessionsData.forEach(s => {
+        if (s.coach_user_id) coachIds.add(s.coach_user_id);
+        else if (s.scheduled_by_coach) coachIds.add(s.scheduled_by_coach);
+      });
+
+      if (coachIds.size > 0) {
+        const promises = Array.from(coachIds).map(id => getUserProfile(id));
+        const results = await Promise.allSettled(promises);
+
+        setCoachColors(prev => {
+          const next = new Map(prev);
+          results.forEach((res, index) => {
+            const id = Array.from(coachIds)[index];
+            if (res.status === "fulfilled" && res.value?.color) {
+              next.set(id, res.value.color);
+            }
+          });
+          return next;
+        });
+      }
 
       // Fetch user details for all unique user_ids
       const cacheCopy = new Map(userCacheRef.current);
@@ -363,10 +389,26 @@ export default function CalendarioPage() {
                         } else if (session.status === "finished") {
                           bgColor = "bg-blue-500";
                           textColor = "text-white";
-                        } else if (session.coach === "Nutricion") {
-                          bgColor = "bg-green-400";
                         } else {
-                          bgColor = "bg-yellow-400";
+                          // Try coach color from ID
+                          const coachId = session.coach_user_id || session.scheduled_by_coach;
+                          let colorClass = coachId ? coachColors.get(coachId) : null;
+
+                          // Try coach color from current profile (if matching name)
+                          if (!colorClass && currentProfile && session.coach === currentProfile.first_name) {
+                            colorClass = currentProfile.color;
+                          }
+
+                          if (colorClass) {
+                            bgColor = colorClass;
+                            textColor = "text-white";
+                          } else if (session.coach === "Nutricion") {
+                            bgColor = "bg-green-400";
+                          } else if (session.coach === "Transpersonal") {
+                            bgColor = "bg-yellow-400";
+                          } else {
+                            bgColor = "bg-blue-400";
+                          }
                         }
 
                         return (

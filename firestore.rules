@@ -14,6 +14,12 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_admin == true;
     }
     
+    // Helper function to check if user is a coach
+    function isCoach() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isCoach == true;
+    }
+    
     // Helper function to check if user owns the resource
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
@@ -24,7 +30,10 @@ service cloud.firestore {
       // Allow read if:
       // - User is admin (can read all users)
       // - User is reading their own profile
-      allow read: if isAdmin() || isOwner(userId);
+      // - User is a coach and the target user has them in assignedCoaches
+      allow read: if isAdmin() || isOwner(userId) || 
+                     (isCoach() && request.auth.uid in resource.data.assignedCoaches) ||
+                     (isAuthenticated() && resource.data.isCoach == true);
       
       // Allow create only during initial registration
       // Ensure new users are created with is_admin = false and user_type = null (will be set after payment)
@@ -54,7 +63,9 @@ service cloud.firestore {
       // Allow read if:
       // - User is admin
       // - User owns this weight log
-      allow read: if isAdmin() || isOwner(resource.data.user_id);
+      // - User is coach and assigned to the user
+      allow read: if isAdmin() || isOwner(resource.data.user_id) ||
+                     (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
       
       // Allow create if:
       // - User is creating their own weight log
@@ -80,7 +91,9 @@ service cloud.firestore {
       // Allow read if:
       // - User is admin
       // - User owns this objective
-      allow read: if isAdmin() || isOwner(resource.data.user_id);
+      // - User is coach and assigned to the user
+      allow read: if isAdmin() || isOwner(resource.data.user_id) ||
+                     (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
       
       // Allow create if:
       // - User is creating their own objective
@@ -111,7 +124,10 @@ service cloud.firestore {
       // Allow get (single document read) if:
       // - User is admin (can read all sessions)
       // - User is reading their own session
-      allow get: if isAdmin() || (isAuthenticated() && resource.data.user_id == request.auth.uid);
+      // - User is coach and assigned
+      allow get: if isAdmin() || 
+                    (isAuthenticated() && resource.data.user_id == request.auth.uid) ||
+                    (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
       
       // Allow create if:
       // - User is creating their own session
@@ -120,16 +136,23 @@ service cloud.firestore {
                        isOwner(request.resource.data.user_id) &&
                        request.resource.data.user_id == request.auth.uid &&
                        request.resource.data.status == 'scheduled' &&
-                       request.resource.data.coach in ['Nutricion', 'Transpersonal'] &&
+                       request.resource.data.coach is string &&
                        request.resource.data.duration == 90) ||
                        (isAdmin() &&
                        request.resource.data.user_id is string &&
                        request.resource.data.status in ['scheduled', 'finished', 'cancelled'] &&
-                       request.resource.data.coach in ['Nutricion', 'Transpersonal']);
+                       request.resource.data.coach is string) ||
+                       (isCoach() &&
+                       request.resource.data.user_id is string &&
+                       request.auth.uid in get(/databases/$(database)/documents/users/$(request.resource.data.user_id)).data.assignedCoaches &&
+                       request.resource.data.status == 'scheduled' &&
+                       request.resource.data.coach is string);
       
       // Allow update if:
       // - Admin is updating any session
-      allow update: if isAdmin();
+      // - Coach is updating a session for their assigned client
+      allow update: if isAdmin() || 
+                       (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
       
       // Allow delete if:
       // - Admin is deleting any session
@@ -141,7 +164,9 @@ service cloud.firestore {
       // Allow read if:
       // - User is admin
       // - User owns the journal entry
-      allow read, list: if isAdmin() || isOwner(resource.data.user_id);
+      // - User is coach and assigned to the user
+      allow read, list: if isAdmin() || isOwner(resource.data.user_id) ||
+                           (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
 
       // Allow create if:
       // - Authenticated user is creating their own entry
@@ -229,7 +254,9 @@ service cloud.firestore {
       // Allow read if:
       // - User is admin
       // - User owns this progress record
-      allow read: if isAdmin() || isOwner(resource.data.user_id);
+      // - User is coach and assigned
+      allow read: if isAdmin() || isOwner(resource.data.user_id) ||
+                     (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
       
       // Allow create if:
       // - User is creating their own progress record
@@ -334,8 +361,118 @@ service cloud.firestore {
       // Allow read if authenticated (needed for booking)
       allow read: if isAuthenticated();
       
-      // Allow write if admin
-      allow create, update, delete: if isAdmin();
+      // Allow create if:
+      // - User is admin
+      // - User is creating their own rule
+      allow create: if isAuthenticated() && 
+                       (isAdmin() || 
+                       (request.resource.data.user_id == request.auth.uid));
+      
+      // Allow update, delete if:
+      // - User is admin
+      // - User owns the rule
+      allow update, delete: if isAdmin() || 
+                               (isAuthenticated() && resource.data.user_id == request.auth.uid);
+    }
+
+    // Questionnaires collection
+    match /questionnaires/{questionnaireId} {
+      // Allow read if:
+      // - User is admin (can read all)
+      // - User is coach and owns the questionnaire
+      allow read: if isAdmin() || 
+                     (isCoach() && resource.data.created_by == request.auth.uid);
+      
+      // Allow create if:
+      // - User is admin or coach
+      allow create: if (isAdmin() || isCoach()) &&
+                       request.resource.data.title is string &&
+                       request.resource.data.created_by == request.auth.uid &&
+                       request.resource.data.status in ['active', 'draft'];
+      
+      // Allow update if:
+      // - User is admin
+      // - User is coach and owns the questionnaire
+      allow update: if isAdmin() || 
+                       (isCoach() && resource.data.created_by == request.auth.uid);
+      
+      // Allow delete if:
+      // - User is admin
+      // - User is coach and owns the questionnaire
+      allow delete: if isAdmin() || 
+                       (isCoach() && resource.data.created_by == request.auth.uid);
+    }
+
+    // Questionnaire questions collection
+    match /questionnaire_questions/{questionId} {
+      // Allow read if:
+      // - User is admin
+      // - User is coach (will filter by questionnaire ownership in app)
+      allow read: if isAdmin() || isCoach();
+      
+      // Allow create if:
+      // - User is admin or coach
+      allow create: if (isAdmin() || isCoach()) &&
+                       request.resource.data.questionnaire_id is string &&
+                       request.resource.data.question_text is string &&
+                       request.resource.data.question_type in ['multiple_choice', 'open'] &&
+                       request.resource.data.order is number;
+      
+      // Allow update if:
+      // - User is admin or coach
+      allow update: if isAdmin() || isCoach();
+      
+      // Allow delete if:
+      // - User is admin or coach
+      allow delete: if isAdmin() || isCoach();
+    }
+
+    // Assigned Questionnaires collection
+    match /assigned_questionnaires/{questionnaireId} {
+      // Allow read if:
+      // - User is admin
+      // - User is owner (client)
+      // - User is coach assigned to the client
+      allow read: if isAdmin() || 
+                     isOwner(resource.data.user_id) ||
+                     (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
+
+      // Allow create if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      allow create: if (isAdmin() || 
+                       (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(request.resource.data.user_id)).data.assignedCoaches)) &&
+                       request.resource.data.title is string &&
+                       request.resource.data.status in ['pending', 'completed'];
+
+      // Allow update, delete if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      allow update, delete: if isAdmin() || 
+                               (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
+    }
+
+    // Assigned Questionnaire Questions collection
+    match /assigned_questionnaire_questions/{questionId} {
+      // Allow read if:
+      // - User is admin
+      // - User is owner (client)
+      // - User is coach assigned to the client
+      allow read: if isAdmin() || 
+                     isOwner(resource.data.user_id) ||
+                     (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
+
+      // Allow create if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      allow create: if (isAdmin() || 
+                       (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(request.resource.data.user_id)).data.assignedCoaches));
+
+      // Allow update, delete if:
+      // - User is admin
+      // - User is coach assigned to the target user
+      allow update, delete: if isAdmin() || 
+                               (isCoach() && request.auth.uid in get(/databases/$(database)/documents/users/$(resource.data.user_id)).data.assignedCoaches);
     }
   }
 }

@@ -8,7 +8,9 @@ import {
   getUserProfile,
   updateUserField,
   updateUserEmail,
-  updateUserType
+  updateUserType,
+  getCoachUsers,
+  updateUserCoaches
 } from "@/lib/firestore-helpers";
 import type { User as FirestoreUser, UserType } from "@/lib/firestore-schema";
 import { updatePassword, updateEmail as updateAuthEmail, getIdToken } from "firebase/auth";
@@ -20,11 +22,12 @@ type ProfileModalProps = {
   onClose: () => void;
   user: FirestoreUser | null;
   onEdit?: (field: EditableField, userId: string, currentValue: string | number | undefined) => void;
-  onToggleClient?: (userId: string, currentValue: boolean) => void;
+  onOpenCoachAssignment?: (userId: string, currentCoaches: string[]) => void;
   onToggleCoach?: (userId: string, currentValue: boolean) => void;
+  coaches?: FirestoreUser[];
 };
 
-function ProfileModal({ isOpen, onClose, user, onEdit, onToggleClient, onToggleCoach }: ProfileModalProps) {
+function ProfileModal({ isOpen, onClose, user, onEdit, onOpenCoachAssignment, onToggleCoach, coaches }: ProfileModalProps) {
   if (!isOpen || !user) return null;
 
   return (
@@ -40,7 +43,7 @@ function ProfileModal({ isOpen, onClose, user, onEdit, onToggleClient, onToggleC
           </button>
         </div>
         <div className="p-6">
-          <UserCard user={user} onEdit={onEdit} onToggleClient={onToggleClient} onToggleCoach={onToggleCoach} />
+          <UserCard user={user} onEdit={onEdit} onOpenCoachAssignment={onOpenCoachAssignment} onToggleCoach={onToggleCoach} coaches={coaches} />
         </div>
       </div>
     </div>
@@ -116,6 +119,117 @@ function EditModal({
             className="w-full rounded-lg border border-panel-border bg-panel-bg px-4 py-2 text-panel-text outline-none transition focus:border-panel-primary"
             disabled={saving}
           />
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-500">
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 rounded-lg border border-panel-border px-4 py-2 text-sm font-semibold text-panel-muted transition hover:bg-panel-bg disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 rounded-lg bg-panel-primary px-4 py-2 text-sm font-semibold text-panel-text-light transition hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "Guardando..." : "Guardar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type CoachAssignmentModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (coachIds: string[]) => Promise<void>;
+  coaches: FirestoreUser[];
+  currentCoaches: string[];
+  userName: string;
+};
+
+function CoachAssignmentModal({
+  isOpen,
+  onClose,
+  onSave,
+  coaches,
+  currentCoaches,
+  userName
+}: CoachAssignmentModalProps) {
+  const [selectedCoaches, setSelectedCoaches] = useState<string[]>(currentCoaches);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedCoaches(currentCoaches);
+      setError(null);
+    }
+  }, [currentCoaches, isOpen]);
+
+  const handleToggleCoach = (coachId: string) => {
+    setSelectedCoaches(prev =>
+      prev.includes(coachId)
+        ? prev.filter(id => id !== coachId)
+        : [...prev, coachId]
+    );
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave(selectedCoaches);
+      onClose();
+    } catch (err) {
+      console.error("Error saving coaches:", err);
+      setError(err instanceof Error ? err.message : "Error al guardar. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-2xl border border-panel-border bg-panel-card p-6 shadow-xl">
+        <h3 className="mb-2 text-xl font-bold text-panel-text">Asignar Coaches</h3>
+        <p className="mb-4 text-sm text-panel-muted">Selecciona los coaches para {userName}</p>
+
+        <div className="max-h-64 overflow-y-auto mb-4 space-y-2">
+          {coaches.length === 0 ? (
+            <p className="text-sm text-panel-muted py-4 text-center">No hay coaches disponibles</p>
+          ) : (
+            coaches.map(coach => (
+              <label
+                key={coach.user_id}
+                className="flex items-center gap-3 p-3 rounded-lg border border-panel-border hover:bg-panel-bg/50 cursor-pointer transition"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedCoaches.includes(coach.user_id)}
+                  onChange={() => handleToggleCoach(coach.user_id)}
+                  className="size-4 rounded border-panel-border bg-panel-bg text-panel-primary accent-panel-primary focus:ring-panel-primary"
+                />
+                <div>
+                  <span className="text-sm font-medium text-panel-text">
+                    {coach.first_name} {coach.last_name}
+                  </span>
+                  <span className="block text-xs text-panel-muted">{coach.email}</span>
+                </div>
+              </label>
+            ))
+          )}
         </div>
 
         {error && (
@@ -257,11 +371,12 @@ interface UserCardProps {
   user: FirestoreUser;
   editHandlers?: Partial<Record<EditableField, () => void>>;
   onEdit?: (field: EditableField, userId: string, currentValue: string | number | undefined) => void;
-  onToggleClient?: (userId: string, currentValue: boolean) => void;
+  onOpenCoachAssignment?: (userId: string, currentCoaches: string[]) => void;
   onToggleCoach?: (userId: string, currentValue: boolean) => void;
+  coaches?: FirestoreUser[];
 }
 
-function UserCard({ user, editHandlers, onEdit, onToggleClient, onToggleCoach }: UserCardProps) {
+function UserCard({ user, editHandlers, onEdit, onOpenCoachAssignment, onToggleCoach, coaches }: UserCardProps) {
   // Generate edit handlers from onEdit callback if not provided directly
   const handlers = editHandlers || (onEdit ? {
     email: () => onEdit("email", user.user_id, user.email),
@@ -386,14 +501,25 @@ function UserCard({ user, editHandlers, onEdit, onToggleClient, onToggleCoach }:
                 <span className="text-sm text-panel-text">{formatUserType(user.user_type)}</span>
               </div>
             </div>
-            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={!!user.isClient}
-                onChange={() => onToggleClient?.(user.user_id, !!user.isClient)}
-                className="size-4 rounded border-panel-border bg-panel-bg text-panel-primary accent-panel-primary focus:ring-panel-primary"
-              />
-              <span className="text-sm text-panel-text">Es Cliente</span>
+            <div className="px-4 py-2 border-b md:border-b-0 md:border-r border-panel-border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="block text-xs font-medium text-panel-muted">Coaches Asignados</span>
+                  <span className="text-sm text-panel-text">
+                    {user.assignedCoaches && user.assignedCoaches.length > 0
+                      ? coaches?.filter(c => user.assignedCoaches?.includes(c.user_id)).map(c => `${c.first_name} ${c.last_name}`).join(", ") || `${user.assignedCoaches.length} coach(es)`
+                      : "Sin coach"}
+                  </span>
+                </div>
+                {onOpenCoachAssignment && (
+                  <button
+                    onClick={() => onOpenCoachAssignment(user.user_id, user.assignedCoaches || [])}
+                    className="text-xs text-panel-primary font-semibold hover:bg-panel-primary/10 px-2 py-1 rounded"
+                  >
+                    Asignar
+                  </button>
+                )}
+              </div>
             </div>
             <div className="px-4 py-2 flex items-center gap-3">
               <input
@@ -437,6 +563,22 @@ export default function AdminPage() {
 
   // Show inactive users toggle
   const [showInactive, setShowInactive] = useState(false);
+
+  // Coaches list
+  const [coaches, setCoaches] = useState<FirestoreUser[]>([]);
+
+  // Coach assignment modal state
+  const [coachAssignmentModal, setCoachAssignmentModal] = useState<{
+    isOpen: boolean;
+    userId: string | null;
+    currentCoaches: string[];
+    userName: string;
+  }>({
+    isOpen: false,
+    userId: null,
+    currentCoaches: [],
+    userName: "",
+  });
 
   // Edit modal state
   const [editModal, setEditModal] = useState<{
@@ -638,25 +780,42 @@ export default function AdminPage() {
     }
   }, [user?.uid, profileModal.isOpen, profileModal.user?.user_id]);
 
-  const handleToggleClient = useCallback(async (userId: string, currentValue: boolean) => {
-    try {
-      await updateUserField(userId, "isClient", !currentValue);
-      await refreshDirectoryUsers();
-      await refreshUserDetails(userId);
+  const handleOpenCoachAssignment = useCallback((userId: string, currentCoaches: string[]) => {
+    const targetUser = directoryUsers.find(u => u.user_id === userId) || profileModal.user;
+    const userName = targetUser ? `${targetUser.first_name} ${targetUser.last_name}` : "Usuario";
+    setCoachAssignmentModal({
+      isOpen: true,
+      userId,
+      currentCoaches,
+      userName,
+    });
+  }, [directoryUsers, profileModal.user]);
 
-      // Update the profile modal if it's open
-      if (profileModal.isOpen && profileModal.user?.user_id === userId) {
-        const updatedUser = await getUserProfile(userId);
-        setProfileModal({
-          isOpen: true,
-          user: updatedUser,
-        });
-      }
+  const closeCoachAssignmentModal = useCallback(() => {
+    setCoachAssignmentModal({
+      isOpen: false,
+      userId: null,
+      currentCoaches: [],
+      userName: "",
+    });
+  }, []);
+
+  const handleSaveCoachAssignment = useCallback(async (coachIds: string[]) => {
+    if (!coachAssignmentModal.userId) return;
+
+    try {
+      await updateUserCoaches(coachAssignmentModal.userId, coachIds);
+      await refreshDirectoryUsers();
+      await refreshUserDetails(coachAssignmentModal.userId);
+
+      // Refresh coaches list as well
+      const updatedCoaches = await getCoachUsers();
+      setCoaches(updatedCoaches);
     } catch (error) {
-      console.error("Error toggling client status:", error);
+      console.error("Error saving coach assignment:", error);
       throw error;
     }
-  }, [user?.uid, profileModal.isOpen, profileModal.user?.user_id, refreshDirectoryUsers, refreshUserDetails]);
+  }, [coachAssignmentModal.userId, refreshDirectoryUsers, refreshUserDetails]);
 
   const handleToggleCoach = useCallback(async (userId: string, currentValue: boolean) => {
     try {
@@ -774,6 +933,12 @@ export default function AdminPage() {
             });
 
           setDirectoryUsers(sortedUsers);
+
+          // Load coaches
+          const coachUsers = await getCoachUsers();
+          if (isMounted) {
+            setCoaches(coachUsers);
+          }
         }
 
         if (isMounted) {
@@ -854,8 +1019,18 @@ export default function AdminPage() {
         onClose={closeProfileModal}
         user={profileModal.user}
         onEdit={handleEditField}
-        onToggleClient={handleToggleClient}
+        onOpenCoachAssignment={handleOpenCoachAssignment}
         onToggleCoach={handleToggleCoach}
+        coaches={coaches}
+      />
+
+      <CoachAssignmentModal
+        isOpen={coachAssignmentModal.isOpen}
+        onClose={closeCoachAssignmentModal}
+        onSave={handleSaveCoachAssignment}
+        coaches={coaches}
+        currentCoaches={coachAssignmentModal.currentCoaches}
+        userName={coachAssignmentModal.userName}
       />
 
       <EditModal
@@ -976,7 +1151,7 @@ export default function AdminPage() {
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Nombre</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Apellido</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Email</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-panel-muted">Cliente</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-panel-muted">Coaches</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-panel-muted">Tipo de Usuario</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-panel-muted">Acciones</th>
                     </tr>
@@ -988,7 +1163,7 @@ export default function AdminPage() {
                         <td className="px-4 py-4 text-sm text-panel-text">{entry.last_name || "—"}</td>
                         <td className="px-4 py-4 text-sm text-panel-text">{entry.email}</td>
                         <td className="px-4 py-4 text-center text-sm text-panel-text">
-                          {entry.isClient ? "✅" : ""}
+                          {entry.assignedCoaches && entry.assignedCoaches.length > 0 ? entry.assignedCoaches.length : "—"}
                         </td>
                         <td className="px-4 py-4">
                           <select

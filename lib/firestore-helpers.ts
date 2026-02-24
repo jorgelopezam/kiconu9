@@ -14,10 +14,28 @@ import {
   serverTimestamp,
   arrayUnion,
   arrayRemove,
+  documentId,
   writeBatch,
 } from "firebase/firestore";
 import { db, COLLECTIONS } from "./firestore";
-import type { User, UserWeight, UserObjective, UserType, ObjectiveStatus, Course, CourseAccessLevel, CourseStatus, CourseSection, CourseItem, CourseItemType, Meditation } from "./firestore-schema";
+import type {
+  User,
+  UserWeight,
+  UserObjective,
+  Video,
+  UserVideoProgress,
+  JournalEntry,
+  Course,
+  CourseSection,
+  CourseItem,
+  CourseItemType,
+  SessionAvailability,
+  UserType,
+  ObjectiveStatus,
+  CourseAccessLevel,
+  CourseStatus,
+  Meditation,
+} from "./firestore-schema";
 
 /**
  * User Management Functions
@@ -121,9 +139,121 @@ export async function getAllUsers(): Promise<User[]> {
 
     return {
       ...data,
+      user_id: docSnapshot.id, // Ensure doc ID is included
+      id: docSnapshot.id, // Also include as 'id' for compatibility
       registration_date: registrationTimestamp?.toDate?.() || new Date(),
-    } as User;
+    } as User & { id: string };
   });
+}
+
+
+/**
+ * Coach Management Functions
+ */
+
+// Get all users who are coaches
+export async function getCoachUsers(): Promise<User[]> {
+  const usersRef = collection(db, COLLECTIONS.USERS);
+  const q = query(usersRef, where("isCoach", "==", true));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      ...data,
+      user_id: docSnapshot.id, // Ensure doc ID is included
+      id: docSnapshot.id, // Also include as 'id' for compatibility
+      registration_date: data.registration_date?.toDate?.() || new Date(),
+    } as User & { id: string };
+  });
+}
+
+
+// Get users assigned to a specific coach
+export async function getUsersByCoach(coachId: string): Promise<User[]> {
+  const usersRef = collection(db, COLLECTIONS.USERS);
+  const q = query(usersRef, where("assignedCoaches", "array-contains", coachId));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      ...data,
+      user_id: docSnapshot.id, // Ensure doc ID is included
+      id: docSnapshot.id, // Also include as 'id' for compatibility
+      registration_date: data.registration_date?.toDate?.() || new Date(),
+    } as User & { id: string };
+  });
+}
+
+
+// Assign a coach to a user
+export async function assignCoachToUser(userId: string, coachId: string): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, {
+    assignedCoaches: arrayUnion(coachId),
+  });
+}
+
+// Remove a coach from a user
+export async function removeCoachFromUser(userId: string, coachId: string): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, {
+    assignedCoaches: arrayRemove(coachId),
+  });
+}
+
+// Get coaches assigned to a specific user
+export async function getCoachesForUser(userId: string): Promise<User[]> {
+  try {
+    const userProfile = await getUserProfile(userId);
+    if (!userProfile?.assignedCoaches || userProfile.assignedCoaches.length === 0) {
+      return [];
+    }
+
+    // Fetch all coach profiles
+    // We use Promise.allSettled to handle potential failures (e.g. permission errors) gracefully
+    const coachPromises = userProfile.assignedCoaches.map(coachId => getUserProfile(coachId));
+    const results = await Promise.allSettled(coachPromises);
+
+    // Filter fulfilled promises and non-null user profiles
+    const coaches = results
+      .filter((result): result is PromiseFulfilledResult<User | null> => result.status === 'fulfilled')
+      .map(result => result.value)
+      .filter((user): user is User => user !== null);
+
+    return coaches;
+  } catch (error) {
+    console.error("Error fetching coaches for user:", error);
+    return [];
+  }
+}
+
+// Get availability rules for a specific coach
+export async function getCoachAvailability(coachId: string): Promise<SessionAvailability[]> {
+  try {
+    const availabilityRef = collection(db, COLLECTIONS.SESSIONS_AVAILABILITY);
+    const q = query(availabilityRef, where("user_id", "==", coachId));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      start_date: doc.data().start_date?.toDate(),
+      end_date: doc.data().end_date?.toDate(),
+      created_at: doc.data().created_at?.toDate(),
+    })) as SessionAvailability[];
+  } catch (error) {
+    console.error("Error fetching coach availability:", error);
+    return [];
+  }
+}
+
+
+// Update all coaches for a user (replace entire array)
+export async function updateUserCoaches(userId: string, coachIds: string[]): Promise<void> {
+  const userRef = doc(db, COLLECTIONS.USERS, userId);
+  await updateDoc(userRef, { assignedCoaches: coachIds });
 }
 
 /**
